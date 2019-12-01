@@ -24,12 +24,13 @@ etc. I publish all these pictures on a website.
 
    4. Tire slashing - honest users
 
-I am Petra and I create a token that people can claim when shashing tires of cars. People 
+I am Petra and I create a token that people can claim when slashing tires of cars. People 
 have to send a picture of the licence plate of the car, before and after the slashing. 
 
    4.5 Tire slashing - cheaters
 
-I am Johan, 
+I am Johann and I create a token that people can claim when slashing tires of cars. People 
+have to send a picture before and after the slashing.
 
    5. Cycling scam (very realistic case)
 
@@ -41,7 +42,15 @@ picture with me on the bike at home and at the office. I have done several pairs
 
    5.5 Cycling to work (robust token)
 
-   6. Scool Isar trash cleaning
+I am Ramiro and I create a token for people to go to work on a bike. As proof people have
+to give access to the location of their phone during the ride, plus a photo.
+
+   6. School Isar trash cleaning
+
+This token is issued by the ministry of education and can be claimed by schools for sustainability-
+related activities. For example a primary school in Munich regularly sends classes of children
+to clearn the Isar river. These events are well documented by reporters, parents know about it etc.
+Therefore the claiming-proofs, done by the respective school principal, can be kept fairly simple.
 
    7. No flying aggression 
 
@@ -51,27 +60,52 @@ popular, airport started reporting harassment cases, people who want to claim to
 influencing others try to convince travelers to cancel their tickets in an aggressive 
 manner.
 
-   7.5 No flying token 
+   7.5 No flying token
+
+I am Hubert and I created a token for people who chose to travel by train instead of 
+plane. As proof claimers provide tickets plus a search for the turned down flight option
+that would have been faster or cheaper.
 
    8. Killer Birds
 
 I am Peter and I am a bird lover. In order to help the birds get through an unusually cold 
 winter,  I created a Feed-the-birds-token that people can claim by sending a picture of 
-them feeding birds. It worked great it’s just that now it is leading up to an exploding 
+them feeding birds. It worked great it's just that now it is leading up to an exploding 
 population of a few types of birds that came to dominate the ecosystem with devastating 
 effects on other species. 
 
    9. Bird feeder token
 
+I am Lavinia and I am a bird lover. In order to help the birds get through an unusually cold 
+winter,  I created a Feed-the-birds-token that people can claim by sending a picture of 
+them feeding birds. The token is capped to an amount agreed upon with ornithology-experts.
+
    10. Feed the homeless - signature
 
-   11. Feed the homeless 
+This token rewards people feeding the homeless. Proof types include picture and a signed form
+per homeless person.
+
+   11. Feed the homeless
+
+This token rewards people feeding the homeless. As proof type a photo is enough.
 
    12. Feed the homeless - Grunwald
 
+This token rewards people feeding the homeless in Grunwald. There are no homeless people 
+in Grunwald.
+
    13. Beggar cartel
 
+An organization distributing donated funds to beggars decides to use a token representing
+the paid-out amounts to beggars so that donors can track their impact. The idea with the
+proof type was to note down details from their ID card - but it turns out many don't have
+one on them or don't want to show it. They reverted to taking names from the beggars which
+resulted in some of them coming up multiple times to different distributors of the organization
+under new names and claiming donations again. Especially one cartel of beggars went all in on
+this strategy and accumulated a large amount of funds in this way. This created a power imbalance
+between local cartes and fuels friction between them.
 
+   14. Fake tokens
 
-
-
+I am Gabriella and I create a tree token with a high initial supply but I keep them for myself.
+They are transferable so I am tring to exchange them for other tokens.
