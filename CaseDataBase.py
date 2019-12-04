@@ -23,10 +23,12 @@ import matplotlib.pyplot as plt
 #Case 11:   Feed the homeless (0.9, 0.4, 0.9)              / green for the community
 #Case 12:   Feed the homeless in Grunwald (0.2, 0.7, 1)    /pottentially green for the community but there are no homeless people in Grunwald
 #Case 13:   Beggar cartel (0.1, 0.3, 0.9)                  /red for the community
+#Case 14:   Tree token - false (-0.1, -0.1, 0.1)
 
 #Red Stories: C2, C4, C8, C13                         #social conflict/mistrust in the Token system/ecosystem colapse
 #Yellow Stories: C1, C3, C4.5, C5, C7, C10, C12
 #Green Stories: C5.5, C6, C7.5, C9, C11
+#Black Storie: C14                                    #impact unknown
 
 lines = False
 
@@ -69,6 +71,13 @@ ax.text(xg[1], yg[1], zg[1], '%s' %('C6'), size=7, zorder=1)
 ax.text(xg[2], yg[2], zg[2], '%s' %('C7.5'), size=7, zorder=1)
 ax.text(xg[3], yg[3], zg[3], '%s' %('C9'), size=7, zorder=1)
 ax.text(xg[4], yg[4], zg[4], '%s' %('C11'), size=7, zorder=1, color='purple')
+
+#   C14
+xb =[-0.1, -0.1, -0.1, -0.1]
+yb =[-0.1, -0.1, -0.1, -0.1]
+zb =[0, 0.1, 0.2, 0.3]
+ax.scatter(xb, yb, zb, c='black', marker='o', label='unknown impact')
+ax.text(xb[3], yb[3], zb[3], '%s' %('C14-Fake tokens'), size=7, zorder=1)
 #-------------------------lines------------------------------
 
 if lines:
@@ -96,9 +105,9 @@ if lines:
     l3 = [1, 1]
     ax.plot(l1, l2, l3, c='purple')
 
-ax.set_xlim(0, 1, 10)
-ax.set_ylim(1, 0, 10)
-ax.set_zlim(0, 1, 10)
+ax.set_xlim(-0.1, 1, 10)
+ax.set_ylim(1, -0.1, 10)
+ax.set_zlim(-0.1, 1, 10)
 ax.legend(loc='upper left', frameon = False)
 
 ax.set_xlabel('User conformity')
