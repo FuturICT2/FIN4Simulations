@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 #Color coding: impact the action has on the environment/community
 
 #Case 1:    Tulip planting (0.8, 0.8, 0.5)                 / yellow for the environment
-#Case 2:    Octoberfest trash (0.7, 0.8, 0.1)              / red for the community
-#Case 3:    Car sha ming (0.5, 0.3, 0.5)                    / yellow for community
+#Case 2:    Oktoberfest trash (0.7, 0.8, 0.1)              / red for the community
+#Case 3:    Car shaming (0.5, 0.3, 0.5)                    / yellow for community
 #Case 4:    Tire slashing - honest users (0.8, 0.8, 0.2)   / red for the community - car fascism
 #Case 4.5:  Tire slashing - cheaters (0.3, 0.3, 0.2)       / potentially bad for the community but cheaters make it yellow
 #Case 5:    Cycling scam  (0.7, 0.4, 0.9)                  / potentially green for the environment but cheaters make it yellow
@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 #Green Stories: C5.5, C6, C7.5, C9, C11
 #Black Storie: C14                                    #impact unknown
 
-lines = False
+lines = True
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
@@ -110,8 +110,10 @@ ax.set_ylim(1, -0.1, 10)
 ax.set_zlim(-0.1, 1, 10)
 ax.legend(loc='upper left', frameon = False)
 
-ax.set_xlabel('User conformity')
-ax.set_ylabel('PAT robustness')
-ax.set_zlabel('PAT Creator intent')
+plt.title("     Story Map")
+
+ax.set_xlabel('User alignment with Fin4')
+ax.set_ylabel('Token design robustness')
+ax.set_zlabel('Token Creator intent')
 
 plt.show()
