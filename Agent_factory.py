@@ -21,12 +21,12 @@ class Create_agents():
         personality = Pp.Create_personas()
         personality_mix = personality.Get_personas()
 
-        general_atributes_A = {'uuid': uuid.uuid4(),
-                     'type': 'A',
-                     'name': number,
-                     'money': 1,
-                     'own_PATs': 0,
-                     'token_wallet': {"reputation": 0}}
+        general_atributes_A = { 'uuid': uuid.uuid4(),
+                                'type': 'A',
+                                'name': number,
+                                'token_wallet': {"reputation": 0},
+                                'activity': 0,
+                                'own_PATs': 0}
 
         general_atributes_A.update(personality_mix)
 
@@ -57,10 +57,12 @@ class Initial_PAT_agents():
 
         for i in range(self.PAT_nr):
             init_PAT = {'uuid': uuid.uuid4(),
-                           'type': 'PAT',
-                           'name': i,
-                           'purpose': 'nobel',
-                           'design': 'robust'}
+                        'type': 'PAT',
+                        'name': i,
+                        'creator_ID': None,
+                        'purpose': 'noble', #'opportunistic', #'noble',
+                        'design': 'careful',
+                        'activity': 0}
             self.initial_PAT_agents.append(init_PAT)
 
     def Get_initial_PAT_agents(self):
@@ -68,15 +70,17 @@ class Initial_PAT_agents():
 
 class Crate_custom_PAT_agents():
 
-    def __init__(self, name, number, intention, design):
+    def __init__(self, name, number, intention, design, cr_id):
         self.PAT_agents = []
 
         for i in range(number):
-            PAT = {'uuid': uuid.uuid4(),
-                           'type': 'PAT',
-                           'name': name + i,
-                           'purpose': intention,
-                           'design': design}
+            PAT = { 'uuid': uuid.uuid4(),
+                    'type': 'PAT',
+                    'name': name + i,
+                    'creator_ID': cr_id,
+                    'purpose': intention,
+                    'design': design,
+                    'activity': 0}
             self.PAT_agents.append(PAT)
 
     def Get_created_PAT_agents(self):

@@ -17,7 +17,7 @@ if __name__ == '__main__':
 
 """## Definitions"""
 #Human agents
-n_A = 4
+n_A = 30
 #n_B = 1
 
 #PAT agents
@@ -43,46 +43,6 @@ def get_update_name(variable_name):
 PATS = "pats"
 ADD_PATS = get_update_name(PATS)
 
-#Human: Agent 1
-
-
-#for i in range(n_A):
-#    wallet = {"reputation": 0}
-#    agent = {'uuid': uuid.uuid4(),
-#             'type': 'A',
-#             'money': 1,
-#             'own_PATs': 0,
-#             'token_wallet': wallet}
-#    initial_agents.append(agent)
-
-#Human: Agent 2
-
-#for i in range(n_B):
-#    wallet = {"reputation": 0}
-#    agent = {'uuid': uuid.uuid4(),
-#             'type': 'B',
-#             'money': 20,
-#             'own_PATs': 0,
-#             'token_wallet': wallet}
-#    initial_agents.append(agent)
-
-#PAT: Agent 1
-
-#for i in range(n_pat_A):
-#    agent = {'uuid': uuid.uuid4(),
-#             'robustness': 'high',
-#             'ideal': 'nobel',
-#             'popularity': 0}
-#    initial_agents.append(agent)
-
-#PAT: Agent 2
-
-#for i in range(n_pat_B):
-#    agent = {'uuid': uuid.uuid4(),
-#             'robustness': 'low',
-#             'ideal': 'nobel',
-#             'popularity': 0}
-#    initial_agents.append(agent)
 
 """### Initial conditions and parameters"""
 
@@ -94,7 +54,7 @@ initial_conditions = {
 }
 
 simulation_parameters ={
-    'T': range(2),
+    'T': range(10),
     'N': 1,
     'M': {}
 }
@@ -103,69 +63,158 @@ simulation_parameters ={
 
 def random_claim_of_tokens(params, step, sL, s):
     agents = s['agents']
-    initial_pats = s['PATs']
-    pats_list = []
-    gains = {}
-    honest_agents_claiming = []
+    pats = s['PATs']
+
+    pats_careful_noble = []
+    pats_careful_opp = []
+    pats_careful_malicious = []
+    pats_careless_noble = []
+    pats_careless_opp = []
+    pats_careless_malicious = []
+
+    follower_agents_claiming = []
+    opportunistic_agents_claiming = []
     cheater_agents_claiming = []
 
-    for pt in initial_pats:
-        pats_list.append(pt['name'])
+    #distinguish between careful and careless PATs
+    for pt in pats:
+        if pt['design'] == 'careful':
+            if pt['purpose'] == 'noble':
+                pats_careful_noble.append(pt['name'])
 
-    print("pat_list: ", pats_list)
+            if pt['purpose'] == 'opportunistic':
+                pats_careful_opp.append(pt['name'])
 
-#TODO
+            if pt['purpose'] == 'malicious':
+                pats_careful_malicious.append(pt['name'])
 
+        else:
+            if pt['purpose'] == 'noble':
+                pats_careless_noble.append(pt['name'])
+
+            if pt['purpose'] == 'opportunistic':
+                pats_careless_opp.append(pt['name'])
+
+            if pt['purpose'] == 'malicious':
+                pats_careless_malicious.append(pt['name'])
+
+
+    # distinguish between followers, opportunists and cheaters
     for agent in agents:
-        print("################################################")
-        print('agent in token claiming: ', agent, "\n")
-
         try:
-            if agent[0]['claimer'] == 'follower' or agent[0]['claimer'] == 'opportunistic':
-                honest_agents_claiming.append(agent[0])
-            else:
+            if agent[0]['claimer'] == 'follower':
+                follower_agents_claiming.append(agent[0])
+            if agent[0]['claimer'] == 'opportunistic':
+                opportunistic_agents_claiming.append(agent[0])
+            if agent[0]['claimer'] == 'cheater':
                 cheater_agents_claiming.append(agent[0])
         except:
-            if agent['claimer'] == 'follower' or agent['claimer'] == 'opportunistic':
-                honest_agents_claiming.append(agent)
-            else:
+            if agent['claimer'] == 'follower':
+                follower_agents_claiming.append(agent)
+            if agent['claimer'] == 'opportunistic':
+                opportunistic_agents_claiming.append(agent)
+            if agent['claimer'] == 'cheater':
                 cheater_agents_claiming.append(agent)
 
-    print("---------------------------------------------------")
-    print("honest_agents_claiming", honest_agents_claiming)
+    for follower in follower_agents_claiming:
+        total_pats = []
+        if follower['claimer_PAT_intention'] == 'noble':
+            total_pats = pats_careful_noble + pats_careless_noble
+        if follower['claimer_PAT_intention'] == 'opportunistic':
+            total_pats = pats_careful_opp + pats_careless_opp
+        if follower['claimer_PAT_intention'] == 'malicious':
+            total_pats = pats_careful_malicious + pats_careless_malicious
 
-    for claimer_A in honest_agents_claiming:
-        for pat in random.sample(pats_list, random.randint(0, len(pats_list))):
-            print ("pat: ", pat)
-            already_existing_PATs = claimer_A['token_wallet']
+        claim(follower, total_pats, 'add_activity', s)
+
+    for opp in opportunistic_agents_claiming:
+        if opp['claimer_PAT_intention'] == 'noble':
+            if len(pats_careful_noble) >= 1:
+                claim(opp, pats_careful_noble, 'add_activity', s)
+            if len(pats_careless_noble) >= 1:
+                claim(opp, pats_careless_noble, 'random_activity', s)
+        if opp['claimer_PAT_intention'] == 'opportunistic':
+            if len(pats_careful_opp) >= 1:
+                claim(opp, pats_careful_opp, 'add_activity', s)
+            if len(pats_careless_opp) >= 1:
+                claim(opp, pats_careless_opp, 'random_activity', s)
+        if opp['claimer_PAT_intention'] == 'malicious':
+            if len(pats_careful_malicious) >= 1:
+                claim(opp, pats_careful_malicious, 'add_activity', s)
+            if len(pats_careless_malicious) >= 1:
+                claim(opp, pats_careless_malicious, 'random_activity', s)
+
+    for ch in cheater_agents_claiming:
+        total_pats = []
+        if ch['claimer_PAT_intention'] == 'noble':
+            total_pats = pats_careful_noble + pats_careless_noble
+        if ch['claimer_PAT_intention'] == 'opportunistic':
+            total_pats = pats_careful_opp + pats_careless_opp
+        if ch['claimer_PAT_intention'] == 'malicious':
+            total_pats = pats_careful_malicious + pats_careless_malicious
+
+        claim(ch, total_pats, 'no_activity', s)
+
+    return {'update_agents': {'update': follower_agents_claiming},
+            'update_agents': {'update': opportunistic_agents_claiming},
+            'update_agents': {'update': cheater_agents_claiming}}
+
+def claim(agent, PAT_list, policy, s):
+    gains = {}
+    if len(PAT_list) >= 1:
+        for pat in random.sample(PAT_list, random.randint(0, len(PAT_list))):
+            already_existing_PATs = agent['token_wallet']
             if pat in already_existing_PATs:
                 gains[pat] = already_existing_PATs[pat] + 1
             else:
                 gains[pat] = 1
-        claimer_A['token_wallet'].update(gains)
 
-    #agent_B = [agent for agent in agents if agent['type'] == 'B']
-    #B_riches = [person for person in agent_B if person['money'] >= sum_threshold]
-    #for rich in B_riches:
-    #    rich['money'] -= 1
+            #add activity according to claimer choice
+            if policy == 'add_activity':
+                agent['activity'] = agent['activity'] + 1
+                add_activity_to_coresponding_PAT(pat, s)
+            if policy == 'random_activity':
+                flag = random.choice([True, False])
+                if flag:
+                    agent['activity'] = agent['activity'] + 1
+                    add_activity_to_coresponding_PAT(pat, s)
+                else:
+                    pass
+            if policy == 'no_activity':
+                pass
 
-    return {'update_agents': {'update': honest_agents_claiming}} #,
-            #'update_agents': {'update': agent_B}} #,'update_agents': {'add': good_riches}}
+    agent['token_wallet'].update(gains)
+
+
+def add_activity_to_coresponding_PAT(pat_id, s):
+    all_PATs = s['PATs']
+
+    for PAT in all_PATs:
+        if PAT['name'] == pat_id:
+            PAT['activity'] = PAT['activity'] + 1
+
 
 def create_pat(params, step, sL, s):
     agents = s['agents']
-    initial_PAT_nr = s['initial nr. of PATs']
+    initial_PAT_nr = len(s['PATs'])
     print("timestep", s['timestep'])
 
-    if s['timestep'] > 0 and s['timestep'] % 3 == 0:
-        creator = agents[-1][0]
+    if s['timestep'] > 0 and s['timestep'] % 2 == 0:
+        creator_name = random.randrange(len(agents))
+        print ("creator_name: ", creator_name)
+        for ag in agents:
+            try:
+                if ag['name'] == creator_name:
+                    creator = ag
+            except:
+                if ag[0]['name'] == creator_name:
+                    creator = ag[0]
+        print("creator: ", creator)
+
         intention = creator['creator_intention']
-        print("**********************************************************")
-        print("intention: ", intention)
+        creator_ID = creator['name']
         design = creator['creator_design']
-        print("**********************************************************")
-        print("design", design)
-        PAT_agents = Af.Crate_custom_PAT_agents(initial_PAT_nr, 1, intention, design)
+        PAT_agents = Af.Crate_custom_PAT_agents(initial_PAT_nr, 1, intention, design, creator_ID)
         initial_PAT_ag = PAT_agents.Get_created_PAT_agents()
         print(initial_PAT_ag)
         return {'update_PATs': {'add': initial_PAT_ag}}
@@ -173,6 +222,8 @@ def create_pat(params, step, sL, s):
     else:
         print("I am passing PAT creation")
         return {'update_PATs': {'add': None}}
+
+
 
 """### State update functions (variables)"""
 
@@ -263,13 +314,10 @@ config = Configuration(initial_state=initial_conditions, #dict containing variab
 from cadCAD.engine import ExecutionMode, ExecutionContext, Executor
 exec_mode = ExecutionMode()
 exec_context = ExecutionContext(exec_mode.single_proc)
-executor = Executor(exec_context, [config]) # Pass the configuration object inside an array
+executor = Executor(exec_context, [config])
 raw_result, tensor = executor.execute()
 
 
-with open("output.txt", 'a') as result_file:
+with open("output.json", 'a') as result_file:
     result_file.write('\n' + str(raw_result) + '\n')
 result_file.close()
-
-#jsonObj = new Json(raw_result)
-#jsonObj.prettyPrint
