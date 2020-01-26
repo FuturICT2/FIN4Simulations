@@ -54,7 +54,7 @@ initial_conditions = {
 }
 
 simulation_parameters ={
-    'T': range(10),
+    'T': range(20),
     'N': 1,
     'M': {}
 }
