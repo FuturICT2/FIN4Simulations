@@ -34,31 +34,47 @@ def calculate_total_tokens_per_pat(state):
     return distribution
 
 def histogram_of_activity_per_PAT(state):
-    activity_hist = []
+    activity_hist_noble = []
+    activity_hist_opp = []
+    activity_hist_malicious = []
 
     for pat in state['PATs']:
         for i in range(0, pat['activity']):
-            activity_hist.append(pat['name'])
+            if pat['purpose'] == 'noble':
+                activity_hist_noble.append(pat['name'])
+            if pat['purpose'] == 'opportunistic':
+                activity_hist_opp.append(pat['name'])
+            if pat['purpose'] == 'malicious':
+                activity_hist_malicious.append(pat['name'])
 
-    print ('activity_hist: ', activity_hist)
-    return activity_hist
+    print ('activity_hist_noble: ', activity_hist_noble)
+    return activity_hist_noble, activity_hist_opp, activity_hist_malicious
 
 def histogram_of_token_per_PAT(state):
+
     pat_distribution = calculate_total_tokens_per_pat(state)
-    histogram_list = []
+
+    histogram_list_noble = []
+    histogram_list_opp = []
+    histogram_list_malicious = []
 
     Keys = list(pat_distribution.keys())
     Values = list(pat_distribution.values())
 
     for v in range(0, len(Values)):
         for iter in range(0, Values[v]):
-            histogram_list.append(Keys[v])
+            if state['PATs'][v]['purpose'] == 'noble':
+                histogram_list_noble.append(Keys[v])
+            if state['PATs'][v]['purpose'] == 'opportunistic':
+                histogram_list_opp.append(Keys[v])
+            if state['PATs'][v]['purpose'] == 'malicious':
+                histogram_list_malicious.append(Keys[v])
 
     #print("Keys: ", Keys)
     #print("Values: ", Values)
     #print("histog: ", histogram_list)
 
-    return histogram_list
+    return histogram_list_noble, histogram_list_opp, histogram_list_malicious
 
 def reconstruct_agent_database(data):
     reconstruction = []
@@ -171,21 +187,33 @@ if 0:
 
 #-------------------PAT and activity distribution -------------------------------------
 if 1:
-    bins = np.linspace(0, 5, 10)
+    bins = np.linspace(0, len(setup.raw_result[-1]["PATs"]) - 1, 2 * len(setup.raw_result[-1]["PATs"]))
 
-    pat_array = histogram_of_token_per_PAT(setup.raw_result[-1])
-    activity_array = histogram_of_activity_per_PAT(setup.raw_result[-1])
+    pat_array_noble, pat_array_opp, pat_array_malicious = histogram_of_token_per_PAT(setup.raw_result[-1])
+    activity_array_noble, activity_array_opp, activity_array_malicious = histogram_of_activity_per_PAT(setup.raw_result[-1])
 
-    np_pat_array = np.array(pat_array)
-    print("np_pat_array: ", np_pat_array)
-    np_activity_array = np.array(activity_array)
-    print("np_activity_array ", np_activity_array)
+    np_pat_array_noble = np.array(pat_array_noble)
+    np_pat_array_opp = np.array(pat_array_opp)
+    np_pat_array_malicious = np.array(pat_array_malicious)
+    print("np_pat_array_noble: ", np_pat_array_noble)
+    print("np_pat_array_opp: ", np_pat_array_opp)
+    print("np_pat_array_malicious: ", np_pat_array_malicious)
 
-    plt.hist([np_pat_array, np_activity_array], bins, label=['tokens', 'activity'])
+    np_activity_array_noble = np.array(activity_array_noble)
+    np_activity_array_opp = np.array(activity_array_opp)
+    np_activity_array_malicious = np.array(activity_array_malicious)
+    print("np_activity_array_noble: ", np_activity_array_noble)
+    print("np_activity_array_opp: ", np_activity_array_opp)
+    print("np_activity_array_malicious: ", np_activity_array_malicious)
+
+    plt.hist([np_pat_array_noble, np_activity_array_noble], bins, label=['noble tokens', 'noble activity'], color=["green", "lightgreen"])
+    plt.hist([np_pat_array_opp, np_activity_array_opp], bins, label=["opp tokens", "opp activity"], color=["orange", "yellow"])
+    plt.hist([np_pat_array_malicious, np_activity_array_malicious], bins, label=['malicious tokens', 'malicious activity'], color=["red", "pink"])
+
     plt.legend(loc='upper right')
 
     plt.title("PAT impact")
-    plt.ylabel('PAT id')
+    plt.xlabel('PAT id')
 
     plt.savefig("PAT impact" + ".png")
     plt.show()
