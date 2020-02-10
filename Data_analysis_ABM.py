@@ -2,8 +2,10 @@
 # coding: utf-8
 
 import Fin4_ABM as model
+import matplotlib
 from matplotlib import colors
 from matplotlib.ticker import PercentFormatter
+from matplotlib.ticker import FuncFormatter
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pl
 import numpy as np
@@ -14,8 +16,21 @@ setup = model
 
 df = pd.DataFrame(setup.raw_result)
 
-#t_step = setup.raw_result[len(setup.raw_result)-1]["timestep"]
+total_agents = len(setup.raw_result[-1]['agents'])
 #print(t_step)
+
+def to_percent(y, position):
+    # Ignore the passed in position. This has the effect of scaling the default
+    # tick locations.
+    #total_agents = len(state['agents'])
+    s = str(100 * y / total_agents)
+
+    # The percent symbol needs escaping in latex
+    if matplotlib.rcParams['text.usetex'] is True:
+        return s + r'$\%$'
+    else:
+        return s + '%'
+
 
 #------------------- tokens/PAT -----------------------------
 def calculate_total_tokens_per_pat(state):
@@ -143,29 +158,22 @@ if 1:
     claimer = np.array(claim_array)
     print("claimer: ", claimer)
 
+    formatter = FuncFormatter(to_percent)
+
     fig, axs = pl.subplots(1, 2, sharey=True, tight_layout=True)
-    fig.suptitle('Population distribution \n')
-    # We can set the number of bins with the `bins` kwarg
-    axs[0].hist(intent, bins=n_bins, alpha=0.5)
-    #axs[0].tick_params(axis=u'both', which=u'both', length=0)
+    #fig.suptitle('Population distribution \n')
+
+    axs[0].hist(intent, bins=n_bins, alpha=0.7, histtype='bar', ec='black', rwidth=0.5)
+    axs[0].set_xlim([1, 3])
     axs[0].set_title("Intention")
+    axs[0].set_xticklabels([])
     axs[0].set(xlabel='noble      opportunistic     malicious')
-    axs[1].hist(claimer, bins=n_bins, alpha=0.5)
+    axs[1].hist(claimer, bins=n_bins, alpha=0.7, histtype='bar', ec='black', rwidth=0.5)
+    axs[1].set_xlim([1, 3])
     axs[1].set_title("Compliance")
+    axs[1].set_xticklabels([])
     axs[1].set(xlabel='compliant     opportunistic      cheater')
-
-#fig, axs = plt.subplots(2, 2)
-#axs[0, 0].plot(x, y)
-#axs[0, 0].set_title('Axis [0,0]')
-#axs[0, 1].plot(x, y, 'tab:orange')
-#axs[0, 1].set_title('Axis [0,1]')
-#axs[1, 0].plot(x, -y, 'tab:green')
-#axs[1, 0].set_title('Axis [1,0]')
-#axs[1, 1].plot(x, -y, 'tab:red')
-#axs[1, 1].set_title('Axis [1,1]')
-
-#for ax in axs.flat:
-#    ax.set(xlabel='x-label', ylabel='y-label')
+    fig.gca().yaxis.set_major_formatter(formatter)
 
 # Hide x labels and tick labels for top plots and y ticks for right plots.
     for ax in axs.flat:

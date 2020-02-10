@@ -68,10 +68,10 @@ def add_activity_to_coresponding_PAT(pat_id, s):
     
 """## Definitions"""
 
-agents_with_random_atributes = False
+agents_with_random_atributes = True
 #Human agents
-n_A = 10
-custom_agents = True
+n_A = 20
+custom_agents = False
 
 #PAT agents
 n_initial_pat = 2
@@ -117,7 +117,7 @@ initial_conditions = {
 }
 
 simulation_parameters ={
-    'T': range(5),
+    'T': range(20),
     'N': 1,
     'M': {}
 }
