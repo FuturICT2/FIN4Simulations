@@ -14,7 +14,7 @@ from dask.distributed import Client
 class Create_personas():
 
     def __init__(self):
-        self.PAT_claimer = ['follower', 'cheater', 'opportunistic'] #_design
+        self.PAT_claimer = ['compliant', 'cheater', 'opportunistic'] #_design
         #self.PAT_claimer_intention = ['nobel', 'opportunistic', 'malicious'] this is a dimension equal to the creator intention
         self.PAT_voter = ['assessment', 'gain']
         self.PAT_creator_intention = ['noble', 'opportunistic', 'malicious']
@@ -32,8 +32,6 @@ class Create_personas():
                              'voter': voter,
                              'creator_intention': creator_intention,
                              'creator_design': creator_design})
-
-
 
 
     def Get_personas(self):

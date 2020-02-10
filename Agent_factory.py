@@ -38,7 +38,7 @@ class Create_agents():
 
         #general_atributes_B.update(personality_mix)
 
-        permutation = [general_atributes_A] #, general_atributes_B]
+        permutation = [general_atributes_A]
 
         for atribute in permutation:
             for i in range(self.initial_number):
@@ -46,8 +46,50 @@ class Create_agents():
                 self.initial_agents.append(agent)
 
 
-    def Get_initia_agents(self):
+    def Get_initial_agents(self):
         return self.initial_agents
+
+class Create_custom_agents():
+
+    def __init__(self, nr, claimer_intention, compliance, voter, creator_intention, creator_design):
+        self.agents = []
+
+        #print("I am here")
+        general_atr_A = {'uuid': uuid.uuid4(),
+                                'type': 'A',
+                                'name': nr,
+                                'token_wallet': {"reputation": 0},
+                                'activity': 0,
+                                'own_PATs': 0}
+
+        self.create_custom_personality_mix(claimer_intention, compliance, voter, creator_intention, creator_design)
+        pers_mix = self.getCustomPersona()
+        print(general_atr_A)
+        print("---------------------------")
+        print(pers_mix)
+        self.custom_agent = (lambda d: d.update(pers_mix) or d)(general_atr_A)
+
+        #general_atr_A.update(pers_mix)
+        print(general_atr_A)
+        
+    
+    def getCustomAgent(self):
+        return self.custom_agent
+        
+
+    def create_custom_personality_mix(self, claimer_intention, compliance, voter, creator_intention, creator_design):
+        #print("I am here")
+        self.custom_persona = {}
+        self.custom_persona.update({'claimer': compliance,
+                             'claimer_PAT_intention': claimer_intention,
+                             'voter': voter,
+                             'creator_intention': creator_intention,
+                             'creator_design': creator_design})
+        #print(self.custom_persona)
+        
+    def getCustomPersona(self):
+        return self.custom_persona
+
 
 class Initial_PAT_agents():
 

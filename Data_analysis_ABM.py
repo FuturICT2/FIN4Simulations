@@ -120,7 +120,7 @@ def calculate_population_claim_style(state):
         #print(ag['claimer'])
         clain_type = ag['claimer']
 
-        if clain_type == "follower":
+        if clain_type == "compliant":
             style_array.append(1)
         if clain_type == "opportunistic":
             style_array.append(2)
@@ -146,13 +146,13 @@ if 1:
     fig, axs = pl.subplots(1, 2, sharey=True, tight_layout=True)
     fig.suptitle('Population distribution \n')
     # We can set the number of bins with the `bins` kwarg
-    axs[0].hist(intent, bins=n_bins)
+    axs[0].hist(intent, bins=n_bins, alpha=0.5)
     #axs[0].tick_params(axis=u'both', which=u'both', length=0)
     axs[0].set_title("Intention")
     axs[0].set(xlabel='noble      opportunistic     malicious')
-    axs[1].hist(claimer, bins=n_bins)
-    axs[1].set_title("Style")
-    axs[1].set(xlabel='follower     opportunistic      cheater')
+    axs[1].hist(claimer, bins=n_bins, alpha=0.5)
+    axs[1].set_title("Compliance")
+    axs[1].set(xlabel='compliant     opportunistic      cheater')
 
 #fig, axs = plt.subplots(2, 2)
 #axs[0, 0].plot(x, y)

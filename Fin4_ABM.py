@@ -14,150 +14,22 @@ import Agent_factory as Af
 
 if __name__ == '__main__':
     client = Client()
+    
 
-"""## Definitions"""
-#Human agents
-n_A = 30
-#n_B = 1
+"""### Helper functions """
 
-#PAT agents
-n_initial_pat = 2
-
-initial_agents_prep = []
-initial_agents = []
-initial_PAT_ag = []
-
-for i in range(n_A):
-    creation = Af.Create_agents(i)
-    individual_agent = creation.Get_initia_agents()
-    initial_agents_prep.append(individual_agent)       # = creation.Get_initia_agents()
-
-initial_agents = sum([ag for ag in initial_agents_prep], [])
-
-PAT_agents = Af.Initial_PAT_agents(n_initial_pat)
-initial_PAT_ag = PAT_agents.Get_initial_PAT_agents()
 
 def get_update_name(variable_name):
     return "add_" + variable_name
 
-PATS = "pats"
-ADD_PATS = get_update_name(PATS)
 
+def create_agents_with_attributes(set_1, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design):
+    for i in range(set_1):
+        creation = Af.Create_custom_agents(i, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design)
+        individual_agent = creation.getCustomAgent()
+        initial_agents.append(individual_agent)
+    return initial_agents
 
-"""### Initial conditions and parameters"""
-
-initial_conditions = {
-    'agents': initial_agents,
-    'PATs': initial_PAT_ag,
-    'initial nr. of PATs': n_initial_pat,
-    'list_of_OPATs': []
-}
-
-simulation_parameters ={
-    'T': range(20),
-    'N': 1,
-    'M': {}
-}
-
-"""### Policies"""
-
-def random_claim_of_tokens(params, step, sL, s):
-    agents = s['agents']
-    pats = s['PATs']
-
-    pats_careful_noble = []
-    pats_careful_opp = []
-    pats_careful_malicious = []
-    pats_careless_noble = []
-    pats_careless_opp = []
-    pats_careless_malicious = []
-
-    follower_agents_claiming = []
-    opportunistic_agents_claiming = []
-    cheater_agents_claiming = []
-
-    #distinguish between careful and careless PATs
-    for pt in pats:
-        if pt['design'] == 'careful':
-            if pt['purpose'] == 'noble':
-                pats_careful_noble.append(pt['name'])
-
-            if pt['purpose'] == 'opportunistic':
-                pats_careful_opp.append(pt['name'])
-
-            if pt['purpose'] == 'malicious':
-                pats_careful_malicious.append(pt['name'])
-
-        else:
-            if pt['purpose'] == 'noble':
-                pats_careless_noble.append(pt['name'])
-
-            if pt['purpose'] == 'opportunistic':
-                pats_careless_opp.append(pt['name'])
-
-            if pt['purpose'] == 'malicious':
-                pats_careless_malicious.append(pt['name'])
-
-
-    # distinguish between followers, opportunists and cheaters
-    for agent in agents:
-        try:
-            if agent[0]['claimer'] == 'follower':
-                follower_agents_claiming.append(agent[0])
-            if agent[0]['claimer'] == 'opportunistic':
-                opportunistic_agents_claiming.append(agent[0])
-            if agent[0]['claimer'] == 'cheater':
-                cheater_agents_claiming.append(agent[0])
-        except:
-            if agent['claimer'] == 'follower':
-                follower_agents_claiming.append(agent)
-            if agent['claimer'] == 'opportunistic':
-                opportunistic_agents_claiming.append(agent)
-            if agent['claimer'] == 'cheater':
-                cheater_agents_claiming.append(agent)
-
-    for follower in follower_agents_claiming:
-        total_pats = []
-        if follower['claimer_PAT_intention'] == 'noble':
-            total_pats = pats_careful_noble + pats_careless_noble
-        if follower['claimer_PAT_intention'] == 'opportunistic':
-            total_pats = pats_careful_opp + pats_careless_opp
-        if follower['claimer_PAT_intention'] == 'malicious':
-            total_pats = pats_careful_malicious + pats_careless_malicious
-
-        claim(follower, total_pats, 'add_activity', s)
-
-    for opp in opportunistic_agents_claiming:
-        if opp['claimer_PAT_intention'] == 'noble':
-            if len(pats_careful_noble) >= 1:
-                claim(opp, pats_careful_noble, 'add_activity', s)
-            if len(pats_careless_noble) >= 1:
-                claim(opp, pats_careless_noble, 'random_activity', s)
-        if opp['claimer_PAT_intention'] == 'opportunistic':
-            if len(pats_careful_opp) >= 1:
-                claim(opp, pats_careful_opp, 'add_activity', s)
-            if len(pats_careless_opp) >= 1:
-                claim(opp, pats_careless_opp, 'random_activity', s)
-        if opp['claimer_PAT_intention'] == 'malicious':
-            if len(pats_careful_malicious) >= 1:
-                claim(opp, pats_careful_malicious, 'add_activity', s)
-            if len(pats_careless_malicious) >= 1:
-                claim(opp, pats_careless_malicious, 'random_activity', s)
-
-    for ch in cheater_agents_claiming:
-        total_pats = []
-        if ch['claimer_PAT_intention'] == 'noble':
-            total_pats = pats_careful_noble + pats_careless_noble
-        if ch['claimer_PAT_intention'] == 'opportunistic':
-            total_pats = pats_careful_opp + pats_careless_opp
-        if ch['claimer_PAT_intention'] == 'malicious':
-            total_pats = pats_careful_malicious + pats_careless_malicious
-
-        claim(ch, total_pats, 'no_activity', s)
-
-    return {'update_agents': {'update': follower_agents_claiming},
-            'update_agents': {'update': opportunistic_agents_claiming},
-            'update_agents': {'update': cheater_agents_claiming}}
 
 def claim(agent, PAT_list, policy, s):
     gains = {}
@@ -192,6 +64,169 @@ def add_activity_to_coresponding_PAT(pat_id, s):
     for PAT in all_PATs:
         if PAT['name'] == pat_id:
             PAT['activity'] = PAT['activity'] + 1
+    
+    
+"""## Definitions"""
+
+agents_with_random_atributes = False
+#Human agents
+n_A = 10
+custom_agents = True
+
+#PAT agents
+n_initial_pat = 2
+
+initial_agents_prep = []
+initial_agents = []
+initial_PAT_ag = []
+
+
+if agents_with_random_atributes:
+    for i in range(n_A):
+        creation = Af.Create_agents(i)
+        individual_agent = creation.Get_initial_agents()
+        initial_agents_prep.append(individual_agent)
+
+    initial_agents = sum([ag for ag in initial_agents_prep], [])
+
+if custom_agents:
+    set_1 = 10
+    claim_intent = 'noble'
+    claim_compliance = 'cheater'
+    voter_drive = 'assessment'
+    creator_intent = 'noble'
+    creator_design = 'careless'
+
+    create_agents_with_attributes(set_1, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design)
+
+
+PAT_agents = Af.Initial_PAT_agents(n_initial_pat)
+initial_PAT_ag = PAT_agents.Get_initial_PAT_agents()
+
+PATS = "pats"
+ADD_PATS = get_update_name(PATS)
+
+
+"""### Initial conditions and parameters"""
+
+initial_conditions = {
+    'agents': initial_agents,
+    'PATs': initial_PAT_ag,
+    'initial nr. of PATs': n_initial_pat,
+    'list_of_OPATs': []
+}
+
+simulation_parameters ={
+    'T': range(5),
+    'N': 1,
+    'M': {}
+}
+
+
+
+"""### Policies"""
+
+
+def random_claim_of_tokens(params, step, sL, s):
+    agents = s['agents']
+    pats = s['PATs']
+
+    pats_careful_noble = []
+    pats_careful_opp = []
+    pats_careful_malicious = []
+    pats_careless_noble = []
+    pats_careless_opp = []
+    pats_careless_malicious = []
+
+    compliant_agents_claiming = []
+    opportunistic_agents_claiming = []
+    cheater_agents_claiming = []
+
+    #distinguish between careful and careless PATs
+    for pt in pats:
+        if pt['design'] == 'careful':
+            if pt['purpose'] == 'noble':
+                pats_careful_noble.append(pt['name'])
+
+            if pt['purpose'] == 'opportunistic':
+                pats_careful_opp.append(pt['name'])
+
+            if pt['purpose'] == 'malicious':
+                pats_careful_malicious.append(pt['name'])
+
+        else:
+            if pt['purpose'] == 'noble':
+                pats_careless_noble.append(pt['name'])
+
+            if pt['purpose'] == 'opportunistic':
+                pats_careless_opp.append(pt['name'])
+
+            if pt['purpose'] == 'malicious':
+                pats_careless_malicious.append(pt['name'])
+
+
+    # distinguish between compliant, opportunists and cheaters
+    for agent in agents:
+        try:
+            if agent[0]['claimer'] == 'compliant':
+                compliant_agents_claiming.append(agent[0])
+            if agent[0]['claimer'] == 'opportunistic':
+                opportunistic_agents_claiming.append(agent[0])
+            if agent[0]['claimer'] == 'cheater':
+                cheater_agents_claiming.append(agent[0])
+        except:
+            if agent['claimer'] == 'compliant':
+                compliant_agents_claiming.append(agent)
+            if agent['claimer'] == 'opportunistic':
+                opportunistic_agents_claiming.append(agent)
+            if agent['claimer'] == 'cheater':
+                cheater_agents_claiming.append(agent)
+
+    for compliant in compliant_agents_claiming:
+        total_pats = []
+        if compliant['claimer_PAT_intention'] == 'noble':
+            total_pats = pats_careful_noble + pats_careless_noble
+        if compliant['claimer_PAT_intention'] == 'opportunistic':
+            total_pats = pats_careful_opp + pats_careless_opp
+        if compliant['claimer_PAT_intention'] == 'malicious':
+            total_pats = pats_careful_malicious + pats_careless_malicious
+
+        claim(compliant, total_pats, 'add_activity', s)
+
+    for opp in opportunistic_agents_claiming:
+        if opp['claimer_PAT_intention'] == 'noble':
+            if len(pats_careful_noble) >= 1:
+                claim(opp, pats_careful_noble, 'add_activity', s)
+            if len(pats_careless_noble) >= 1:
+                claim(opp, pats_careless_noble, 'random_activity', s)
+        if opp['claimer_PAT_intention'] == 'opportunistic':
+            if len(pats_careful_opp) >= 1:
+                claim(opp, pats_careful_opp, 'add_activity', s)
+            if len(pats_careless_opp) >= 1:
+                claim(opp, pats_careless_opp, 'random_activity', s)
+        if opp['claimer_PAT_intention'] == 'malicious':
+            if len(pats_careful_malicious) >= 1:
+                claim(opp, pats_careful_malicious, 'add_activity', s)
+            if len(pats_careless_malicious) >= 1:
+                claim(opp, pats_careless_malicious, 'random_activity', s)
+
+    for ch in cheater_agents_claiming:
+        total_pats = []
+        if ch['claimer_PAT_intention'] == 'noble':
+            if len(pats_careless_noble) >= 1:
+                total_pats = pats_careless_noble
+        if ch['claimer_PAT_intention'] == 'opportunistic':
+            if len(pats_careless_opp) >= 1:
+                total_pats = pats_careless_opp
+        if ch['claimer_PAT_intention'] == 'malicious':
+            if len(pats_careless_opp) >= 1:
+                total_pats = pats_careless_malicious
+
+        claim(ch, total_pats, 'no_activity', s)
+
+    return {'update_agents': {'update': compliant_agents_claiming},
+            'update_agents': {'update': opportunistic_agents_claiming},
+            'update_agents': {'update': cheater_agents_claiming}}
 
 
 def create_pat(params, step, sL, s):
@@ -222,7 +257,6 @@ def create_pat(params, step, sL, s):
     else:
         print("I am passing PAT creation")
         return {'update_PATs': {'add': None}}
-
 
 
 """### State update functions (variables)"""

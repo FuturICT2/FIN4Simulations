@@ -98,7 +98,7 @@ text3d(ax, (-0.8,0.5,0.35), "No takeoff", zdir="y", size=0.1)
 text3d(ax, (0.25,0.5,-0.75), "Danger Zone", zdir="y", size=0.1)
 text3d(ax, (-0.8,0.5,-0.75), "No takeoff", zdir="y", size=0.1)
 
-relevant_stories = True
+relevant_stories = False
 
 if relevant_stories:
     #     C6   C12       C5     C4      C13     C2      C4.5    C15 (0.3, 0.3, 0.2)
@@ -123,7 +123,7 @@ text3d(ax, (-0.8,-0.5,0.75), "Road to Hell", zdir="y", size=0.1)
 
 plt.title("Parameter space division")
 
-ax.set_xlabel('User alignment with Fin4')
+ax.set_xlabel('User compliance')
 ax.set_ylabel('Token design robustness')
 ax.set_zlabel('Token creator intent')
 
