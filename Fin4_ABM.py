@@ -22,14 +22,12 @@ if __name__ == '__main__':
 def get_update_name(variable_name):
     return "add_" + variable_name
 
-
-def create_agents_with_attributes(set_1, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design):
-    for i in range(set_1):
+def create_agents_with_attributes(last_nr, set, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design):
+    for i in range(last_nr, last_nr + set):
         creation = Af.Create_custom_agents(i, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design)
         individual_agent = creation.getCustomAgent()
         initial_agents.append(individual_agent)
     return initial_agents
-
 
 def claim(agent, PAT_list, policy, s):
     gains = {}
@@ -57,24 +55,24 @@ def claim(agent, PAT_list, policy, s):
 
     agent['token_wallet'].update(gains)
 
-
 def add_activity_to_coresponding_PAT(pat_id, s):
     all_PATs = s['PATs']
 
     for PAT in all_PATs:
         if PAT['name'] == pat_id:
             PAT['activity'] = PAT['activity'] + 1
-    
-    
+
 """## Definitions"""
 
-agents_with_random_atributes = True
+agents_with_random_atributes = False
 #Human agents
-n_A = 20
-custom_agents = False
+n_A = 30
+custom_agents = True
 
 #PAT agents
-n_initial_pat = 2
+custom_bootstrapping = True
+init_PAT_agents = False
+n_initial_pat = 0
 
 initial_agents_prep = []
 initial_agents = []
@@ -90,18 +88,59 @@ if agents_with_random_atributes:
     initial_agents = sum([ag for ag in initial_agents_prep], [])
 
 if custom_agents:
-    set_1 = 10
+    set_1 = 5
+    last_nr = 0
     claim_intent = 'noble'
-    claim_compliance = 'cheater'
+    claim_compliance = 'opportunistic'
     voter_drive = 'assessment'
     creator_intent = 'noble'
     creator_design = 'careless'
 
-    create_agents_with_attributes(set_1, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design)
+    create_agents_with_attributes(last_nr, set_1, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design)
 
+if 1:
+    set_2 = 5
+    last_nr = set_1
+    claim_intent = 'malicious'
+    claim_compliance = 'opportunistic'
+    voter_drive = 'assessment'
+    creator_intent = 'malicious'
+    creator_design = 'careless'
 
-PAT_agents = Af.Initial_PAT_agents(n_initial_pat)
-initial_PAT_ag = PAT_agents.Get_initial_PAT_agents()
+    create_agents_with_attributes(last_nr, set_2, claim_intent, claim_compliance, voter_drive, creator_intent,
+                                  creator_design)
+if 0:
+    set_3 = 5
+    last_nr = set_1 + set_2
+    claim_intent = 'malicious'
+    claim_compliance = 'opportunistic'
+    voter_drive = 'assessment'
+    creator_intent = 'malicious'
+    creator_design = 'careless'
+
+    create_agents_with_attributes(last_nr, set_3, claim_intent, claim_compliance, voter_drive, creator_intent,
+                                  creator_design)
+if 0:
+    set_4 = 10
+    last_nr = set_1 + set_2+ set_3
+    claim_intent = 'malicious'
+    claim_compliance = 'cheater'
+    voter_drive = 'assessment'
+    creator_intent = 'malicious'
+    creator_design = 'careless'
+
+    create_agents_with_attributes(last_nr, set_4, claim_intent, claim_compliance, voter_drive, creator_intent,
+                                  creator_design)
+if init_PAT_agents:
+    PAT_agents = Af.Initial_PAT_agents(n_initial_pat)
+    initial_PAT_ag = PAT_agents.Get_initial_PAT_agents()
+
+if custom_bootstrapping:
+    PAT_agents = Af.Create_custom_PAT_agents(0, 5, "noble", "careless", 100)
+    initial_PAT_ag_set1 = PAT_agents.Get_created_PAT_agents()
+    PAT_agents = Af.Create_custom_PAT_agents(5, 5, "malicious", "careless", 100)
+    initial_PAT_ag_set2 = PAT_agents.Get_created_PAT_agents()
+    initial_PAT_ag = initial_PAT_ag_set1 + initial_PAT_ag_set2
 
 PATS = "pats"
 ADD_PATS = get_update_name(PATS)
@@ -130,6 +169,8 @@ simulation_parameters ={
 def random_claim_of_tokens(params, step, sL, s):
     agents = s['agents']
     pats = s['PATs']
+    print("--------------------------")
+    print(pats)
 
     pats_careful_noble = []
     pats_careful_opp = []
@@ -244,12 +285,12 @@ def create_pat(params, step, sL, s):
             except:
                 if ag[0]['name'] == creator_name:
                     creator = ag[0]
-        print("creator: ", creator)
 
+        print("creator: ", creator)
         intention = creator['creator_intention']
         creator_ID = creator['name']
         design = creator['creator_design']
-        PAT_agents = Af.Crate_custom_PAT_agents(initial_PAT_nr, 1, intention, design, creator_ID)
+        PAT_agents = Af.Create_custom_PAT_agents(initial_PAT_nr, 1, intention, design, creator_ID)
         initial_PAT_ag = PAT_agents.Get_created_PAT_agents()
         print(initial_PAT_ag)
         return {'update_PATs': {'add': initial_PAT_ag}}
@@ -325,7 +366,16 @@ def update_agents(params, step, sL, s, _input):
 
 """### State update blocks"""
 
-partial_state_update_blocks = [
+if custom_bootstrapping:
+    partial_state_update_blocks = [
+        {
+            'policies': {'random_claim_of_tokens': random_claim_of_tokens},
+            'variables': {'agents': update_agents},
+
+        }
+    ]
+else:
+    partial_state_update_blocks = [
     {
         'policies': {'random_claim_of_tokens': random_claim_of_tokens},
         'variables': {'agents': update_agents},

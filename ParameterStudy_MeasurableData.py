@@ -60,8 +60,9 @@ if segments:
 
     ax.plot_surface(I, J, K, color="red", alpha=0.3)
 
-    ax.set_xlim(-1, 1, 3)
-    ax.set_xticks((1, 0.5, 0, -0.5, -1))
+    #ax.set_xlim(-1, 1, 3)
+    #ax.set_xticks((1, 0.5, 0, -0.5, -1))
+
     ax.set_ylim(1, -1, 3)
     ax.set_yticks((1, 0.5, 0, -0.5, -1))
     ax.set_zlim(-1, 1, 3)
@@ -89,6 +90,11 @@ if relevant_stories:
     yg = cl.design_per_pat()
     zg = cl.purpose_per_pat()
 
+    ax.set_xlim(-1, 1, 3)
+    max_comp, max_cheat = cl.max_comp_cheater()
+    print("max_comp: ", max_comp)
+    print("mac_cheat: ", max_cheat)
+    ax.set_xticks((1, max_comp, 0, max_cheat , -1))
     #cl.tokens_per_pat()
     #cl.action_per_pat()
 

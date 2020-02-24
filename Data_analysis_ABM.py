@@ -45,7 +45,20 @@ def calculate_total_tokens_per_pat(state):
             if pat != 'reputation':
                 distribution[pat] += number_of_tokens
 
-    #print ('distribution: ', distribution)
+    print ('distribution: ', distribution)
+    return distribution
+
+def calculate_total_activity_per_pat(state):
+
+    a = range(0, len(state['PATs']))
+    distribution = dict((el, 0) for el in a)
+
+    #database = reconstruct_agent_database(state['agents'])
+    for pat in state['PATs']:
+        #for ag in range(0, pat['activity'])):
+        distribution[pat['name']] = pat['activity']
+
+    print ('distribution_activity: ', distribution)
     return distribution
 
 def histogram_of_activity_per_PAT(state):
@@ -63,11 +76,13 @@ def histogram_of_activity_per_PAT(state):
                 activity_hist_malicious.append(pat['name'])
 
     print ('activity_hist_noble: ', activity_hist_noble)
+    print ('activity_hist_mal: ', activity_hist_malicious)
     return activity_hist_noble, activity_hist_opp, activity_hist_malicious
 
 def histogram_of_token_per_PAT(state):
 
     pat_distribution = calculate_total_tokens_per_pat(state)
+    activity_distribution = calculate_total_activity_per_pat(state)
 
     histogram_list_noble = []
     histogram_list_opp = []
@@ -152,11 +167,11 @@ if 1:
 
     intent_array = calculate_population_intention_array(setup.raw_result[-1])
     intent = np.array(intent_array)
-    print("intent: ", intent)
+    #print("intent: ", intent)
 
     claim_array = calculate_population_claim_style(setup.raw_result[-1])
     claimer = np.array(claim_array)
-    print("claimer: ", claimer)
+    #print("claimer: ", claimer)
 
     formatter = FuncFormatter(to_percent)
 
@@ -203,26 +218,27 @@ if 1:
     np_pat_array_noble = np.array(pat_array_noble)
     np_pat_array_opp = np.array(pat_array_opp)
     np_pat_array_malicious = np.array(pat_array_malicious)
-    print("np_pat_array_noble: ", np_pat_array_noble)
-    print("np_pat_array_opp: ", np_pat_array_opp)
-    print("np_pat_array_malicious: ", np_pat_array_malicious)
+    #print("np_pat_array_noble: ", np_pat_array_noble)
+    #print("np_pat_array_opp: ", np_pat_array_opp)
+    #print("np_pat_array_malicious: ", np_pat_array_malicious)
 
     np_activity_array_noble = np.array(activity_array_noble)
     np_activity_array_opp = np.array(activity_array_opp)
     np_activity_array_malicious = np.array(activity_array_malicious)
-    print("np_activity_array_noble: ", np_activity_array_noble)
-    print("np_activity_array_opp: ", np_activity_array_opp)
-    print("np_activity_array_malicious: ", np_activity_array_malicious)
+    #print("np_activity_array_noble: ", np_activity_array_noble)
+    #print("np_activity_array_opp: ", np_activity_array_opp)
+    #print("np_activity_array_malicious: ", np_activity_array_malicious)
 
-    plt.hist([np_pat_array_noble, np_activity_array_noble], bins, label=['noble tokens', 'noble activity'], color=["green", "lightgreen"])
-    plt.hist([np_pat_array_opp, np_activity_array_opp], bins, label=["opp tokens", "opp activity"], color=["orange", "yellow"])
-    plt.hist([np_pat_array_malicious, np_activity_array_malicious], bins, label=['malicious tokens', 'malicious activity'], color=["red", "pink"])
+    plt.hist([np_pat_array_noble, np_activity_array_noble], bins, label=['noble tokens claimed', 'noble actions done'], color=["green", "lightgreen"])
+    #plt.hist([np_pat_array_opp, np_activity_array_opp], bins, label=["opp tokens claimed", "opp actions done"], color=["orange", "yellow"])
+    plt.hist([np_pat_array_malicious, np_activity_array_malicious], bins, label=['malicious tokens claimed', 'malicious actions done'], color=["red", "pink"])
 
     plt.legend(loc='upper right')
 
-    plt.title("PAT impact")
-    plt.xlabel('PAT id')
+    plt.title("No. tokens and actions per token type created")
+    plt.xlabel('Token id')
+    plt.ylabel('No. tokens/actions')
 
-    plt.savefig("PAT impact" + ".png")
+    plt.savefig("Token_impact" + ".png")
     plt.show()
 

@@ -57,7 +57,7 @@ class Create_custom_agents():
         #print("I am here")
         general_atr_A = {'uuid': uuid.uuid4(),
                                 'type': 'A',
-                                'name': nr,
+                                'name':  nr,
                                 'token_wallet': {"reputation": 0},
                                 'activity': 0,
                                 'own_PATs': 0}
@@ -110,7 +110,8 @@ class Initial_PAT_agents():
     def Get_initial_PAT_agents(self):
         return self.initial_PAT_agents
 
-class Crate_custom_PAT_agents():
+
+class Create_custom_PAT_agents():
 
     def __init__(self, name, number, intention, design, cr_id):
         self.PAT_agents = []
