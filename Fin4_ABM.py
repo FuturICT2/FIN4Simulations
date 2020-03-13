@@ -5,19 +5,37 @@ import random
 import uuid
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 from cadCAD.configuration import Configuration
 from cadCAD.engine import ExecutionMode, ExecutionContext, Executor
 from cadCAD.configuration.utils import config_sim
 from cadCAD.configuration import append_configs
 from dask.distributed import Client
 import Agent_factory as Af
+import configparser
+
+
+class Error(Exception):
+   """Base class for other exceptions"""
+   pass
+
+
+class UndefinedCustomAgents(Error):
+   """Raised when custom agents chosen set without definition """
+   pass
+
 
 if __name__ == '__main__':
     client = Client()
-    
+
+
+"""### Read config file"""
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 
 """### Helper functions """
-
 
 def get_update_name(variable_name):
     return "add_" + variable_name
@@ -62,85 +80,89 @@ def add_activity_to_coresponding_PAT(pat_id, s):
         if PAT['name'] == pat_id:
             PAT['activity'] = PAT['activity'] + 1
 
+
 """## Definitions"""
-
-agents_with_random_atributes = False
-#Human agents
-n_A = 30
-custom_agents = True
-
-#PAT agents
-custom_bootstrapping = True
-init_PAT_agents = False
-n_initial_pat = 0
 
 initial_agents_prep = []
 initial_agents = []
 initial_PAT_ag = []
 
+# Human agents
 
-if agents_with_random_atributes:
-    for i in range(n_A):
+if config['human agents']['agents_with_random_attributes'] == 'True':
+    print("------------RANDOM agent attributes --------------- ")
+    for i in range(0, int(config['human agents']['number'])):
         creation = Af.Create_agents(i)
         individual_agent = creation.Get_initial_agents()
         initial_agents_prep.append(individual_agent)
 
     initial_agents = sum([ag for ag in initial_agents_prep], [])
 
-if custom_agents:
-    set_1 = 5
-    last_nr = 0
-    claim_intent = 'noble'
-    claim_compliance = 'opportunistic'
-    voter_drive = 'assessment'
-    creator_intent = 'noble'
-    creator_design = 'careless'
 
-    create_agents_with_attributes(last_nr, set_1, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design)
+if config['human agents']['custom_agents'] == 'True':
+    print("------------CUSTOM agent attributes --------------- ")
 
-if 1:
-    set_2 = 5
-    last_nr = set_1
-    claim_intent = 'malicious'
-    claim_compliance = 'opportunistic'
-    voter_drive = 'assessment'
-    creator_intent = 'malicious'
-    creator_design = 'careless'
+    number_of_sets = int(config['human agents']['number_of_custom_agent_sets'])
+    last_id = 0
 
-    create_agents_with_attributes(last_nr, set_2, claim_intent, claim_compliance, voter_drive, creator_intent,
-                                  creator_design)
-if 0:
-    set_3 = 5
-    last_nr = set_1 + set_2
-    claim_intent = 'malicious'
-    claim_compliance = 'opportunistic'
-    voter_drive = 'assessment'
-    creator_intent = 'malicious'
-    creator_design = 'careless'
+    for s in range(1, number_of_sets + 1):
 
-    create_agents_with_attributes(last_nr, set_3, claim_intent, claim_compliance, voter_drive, creator_intent,
-                                  creator_design)
-if 0:
-    set_4 = 10
-    last_nr = set_1 + set_2+ set_3
-    claim_intent = 'malicious'
-    claim_compliance = 'cheater'
-    voter_drive = 'assessment'
-    creator_intent = 'malicious'
-    creator_design = 'careless'
+            #name of variables to be read frpm the init file:           extract this into a separate method
+            number_of_agents = "set" + str(s) + "_number_of_agents"
+            claim_intent = "set" + str(s) + "_claim_intent"
+            claim_compliance = "set" + str(s) + "_claim_compliance"
+            voter_drive = "set" + str(s) + "_voter_drive"
+            creator_intent = "set" + str(s) + "_creator_intent"
+            creator_design = "set" + str(s) + "_creator_design"
 
-    create_agents_with_attributes(last_nr, set_4, claim_intent, claim_compliance, voter_drive, creator_intent,
-                                  creator_design)
-if init_PAT_agents:
-    PAT_agents = Af.Initial_PAT_agents(n_initial_pat)
+
+            set = int(config['human agents'][number_of_agents])
+            cl_intent = config['human agents'][claim_intent]
+            cl_compliance = config['human agents'][claim_compliance]
+            v_drive = config['human agents'][voter_drive]
+            cr_intent = config['human agents'][creator_intent]
+            cr_design = config['human agents'][creator_design]
+
+            #except UndefinedCustomAgents:
+            #    print("Undefined attributes for custom human agents!")
+
+            create_agents_with_attributes(last_id, set, cl_intent, cl_compliance, v_drive, cr_intent,
+                                          cr_design)
+
+            last_id += set
+
+# PAT agents
+
+creation_frequency = int(config['PAT agents']['frequency_PAT_creation'])  # in time-steps
+
+if config['PAT agents']['initial_PAT_agents'] == 'True':
+    PAT_agents = Af.Initial_PAT_agents(int(config['PAT agents']['number_initial_pats']))
     initial_PAT_ag = PAT_agents.Get_initial_PAT_agents()
 
-if custom_bootstrapping:
-    PAT_agents = Af.Create_custom_PAT_agents(0, 5, "noble", "careless", 100)
-    initial_PAT_ag_set1 = PAT_agents.Get_created_PAT_agents()
-    PAT_agents = Af.Create_custom_PAT_agents(5, 5, "malicious", "careless", 100)
-    initial_PAT_ag_set2 = PAT_agents.Get_created_PAT_agents()
-    initial_PAT_ag = initial_PAT_ag_set1 + initial_PAT_ag_set2
+if config['PAT agents']['custom_bootstrapping'] == 'True':
+
+    number_of_PAT_sets = int(config['PAT agents']['number_of_custom_PAT_sets'])
+    print("number_of_PAT_sets: ", number_of_PAT_sets)
+
+    for p in range(1, number_of_PAT_sets + 1):
+        # name of variables to be read frpm the init file:           extract this into a separate method
+        id = "set" + str(p) + "_init_id"
+        number_of_PATs = "set" + str(p) + "_number_of_PATs"
+        token_purpose = "set" + str(p) + "_token_purpose"
+        token_design = "set" + str(p) + "_token_design"
+        creator_id = "set" + str(p) + "_creator_id"
+
+        init_id = int(config['PAT agents'][id])
+        nr_PATs = int(config['PAT agents'][number_of_PATs])
+        tk_purpose = config['PAT agents'][token_purpose]
+        tk_design = config['PAT agents'][token_design]
+        cr_id = int(config['PAT agents'][creator_id])
+
+        PAT_agents = Af.Create_custom_PAT_agents(init_id, nr_PATs, tk_purpose, tk_design, cr_id)
+        PATs = PAT_agents.Get_created_PAT_agents()
+
+        initial_PAT_ag = initial_PAT_ag + PATs
+
 
 PATS = "pats"
 ADD_PATS = get_update_name(PATS)
@@ -151,26 +173,21 @@ ADD_PATS = get_update_name(PATS)
 initial_conditions = {
     'agents': initial_agents,
     'PATs': initial_PAT_ag,
-    'initial nr. of PATs': n_initial_pat,
+    'initial nr. of PATs': int(config['PAT agents']['number_initial_pats']),
     'list_of_OPATs': []
 }
 
 simulation_parameters ={
-    'T': range(20),
+    'T': range(int(config['general']['time_steps'])),
     'N': 1,
     'M': {}
 }
 
-
-
 """### Policies"""
-
 
 def random_claim_of_tokens(params, step, sL, s):
     agents = s['agents']
     pats = s['PATs']
-    print("--------------------------")
-    print(pats)
 
     pats_careful_noble = []
     pats_careful_opp = []
@@ -274,8 +291,10 @@ def create_pat(params, step, sL, s):
     agents = s['agents']
     initial_PAT_nr = len(s['PATs'])
     print("timestep", s['timestep'])
+    #creation_frequency = config['PAT agents']['number_initial_pats'] #config['PAT agents']['frequency_PAT_creation']
+    print('creation frequency: ', creation_frequency)
 
-    if s['timestep'] > 0 and s['timestep'] % 2 == 0:
+    if s['timestep'] > 0 and s['timestep'] % creation_frequency == 0:
         creator_name = random.randrange(len(agents))
         print ("creator_name: ", creator_name)
         for ag in agents:
@@ -366,7 +385,7 @@ def update_agents(params, step, sL, s, _input):
 
 """### State update blocks"""
 
-if custom_bootstrapping:
+if config['PAT agents']['custom_bootstrapping'] == 'True':
     partial_state_update_blocks = [
         {
             'policies': {'random_claim_of_tokens': random_claim_of_tokens},
@@ -376,17 +395,17 @@ if custom_bootstrapping:
     ]
 else:
     partial_state_update_blocks = [
-    {
+        {
         'policies': {'random_claim_of_tokens': random_claim_of_tokens},
         'variables': {'agents': update_agents},
 
-    },
-    {
+        },
+        {
         'policies': {'create_pat': create_pat},
         'variables': {'PATs': update_PATs}
 
-    }
-]
+        }
+    ]
 
 """### Configuration and Execution"""
 
