@@ -117,7 +117,7 @@ Welcome to the Finance4 simulation platform!
 		
 		Design-compliance alignment
 	
-			*for more imformation see ...
+			*for more imformation see ...*
 	
 
 5. cadCAD
@@ -134,10 +134,10 @@ Welcome to the Finance4 simulation platform!
 		for more information see https://github.com/BlockScience/cadCAD?
 		
 	- run the simulations and store the output in a separate file 
-		python Fin4_ABM.py 
+		`python Fin4_ABM.py`
 		
 	- run the simulation through the visualizasion module
-		python Data_analysis_ABM.py
+		`python Data_analysis_ABM.py`
 	
 	
 
@@ -148,7 +148,8 @@ Welcome to the Finance4 simulation platform!
 5. The config.ini file
 	
 	Knowing how to modify the configuration file is very important! 
-	
+
+```	
 [general]
 time_steps = 6 																	=> total number of timesteps the simulation will execute
 output_file_name = 'output.json'												=> name the output file. it will be created in the same folder as Fin4_ABM.py
@@ -207,3 +208,4 @@ set2_token_purpose = malicious
 set2_token_design = careful
 ;arbitrarily big number because for bootstrapping it doesn't matter
 set2_creator_id = 10000
+```
