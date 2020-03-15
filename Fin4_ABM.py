@@ -280,7 +280,8 @@ def random_claim_of_tokens(params, step, sL, s):
             if len(pats_careless_opp) >= 1:
                 total_pats = pats_careless_malicious
 
-        claim(ch, total_pats, 'no_activity', s)
+        claim(ch, total_pats, 'no_activity', s) 
+    print(opportunistic_agents_claiming)
 
     return {'update_agents': {'update': compliant_agents_claiming},
             'update_agents': {'update': opportunistic_agents_claiming},
@@ -290,7 +291,7 @@ def random_claim_of_tokens(params, step, sL, s):
 def create_pat(params, step, sL, s):
     agents = s['agents']
     initial_PAT_nr = len(s['PATs'])
-    print("timestep", s['timestep'])
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1--!!!!!!------------------------timestep", s['timestep'])
     #creation_frequency = config['PAT agents']['number_initial_pats'] #config['PAT agents']['frequency_PAT_creation']
     print('creation frequency: ', creation_frequency)
 
@@ -421,6 +422,6 @@ executor = Executor(exec_context, [config])
 raw_result, tensor = executor.execute()
 
 
-with open("output.json", 'a') as result_file:
+with open("output.json", 'w') as result_file:
     result_file.write('\n' + str(raw_result) + '\n')
 result_file.close()
