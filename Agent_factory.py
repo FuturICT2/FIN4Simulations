@@ -64,13 +64,13 @@ class Create_custom_agents():
 
         self.create_custom_personality_mix(claimer_intention, compliance, voter, creator_intention, creator_design)
         pers_mix = self.getCustomPersona()
-        print(general_atr_A)
-        print("---------------------------")
-        print(pers_mix)
+        #print(general_atr_A)
+        #print("---------------------------")
+        #print(pers_mix)
         self.custom_agent = (lambda d: d.update(pers_mix) or d)(general_atr_A)
 
         #general_atr_A.update(pers_mix)
-        print(general_atr_A)
+        #print(general_atr_A)
         
     
     def getCustomAgent(self):
