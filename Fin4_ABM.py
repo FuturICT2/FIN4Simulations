@@ -25,10 +25,6 @@ class UndefinedCustomAgents(Error):
    pass
 
 
-if __name__ == '__main__':
-    client = Client()
-
-
 """### Read config file"""
 
 config = configparser.ConfigParser()
