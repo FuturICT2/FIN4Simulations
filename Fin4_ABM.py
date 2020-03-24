@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import pandas as pd
 import random
 import uuid
@@ -7,13 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 from cadCAD.configuration import Configuration
-from cadCAD.engine import ExecutionMode, ExecutionContext, Executor
 from cadCAD.configuration.utils import config_sim
 from cadCAD.configuration import append_configs
 from dask.distributed import Client
 import Agent_factory as Af
 import configparser
-
+import copy
 
 class Error(Exception):
    """Base class for other exceptions"""
@@ -23,10 +21,6 @@ class Error(Exception):
 class UndefinedCustomAgents(Error):
    """Raised when custom agents chosen set without definition """
    pass
-
-
-if __name__ == '__main__':
-    client = Client()
 
 
 """### Read config file"""
@@ -82,7 +76,6 @@ def add_activity_to_coresponding_PAT(pat_id, s):
 
 
 """## Definitions"""
-
 initial_agents_prep = []
 initial_agents = []
 initial_PAT_ag = []
@@ -90,7 +83,7 @@ initial_PAT_ag = []
 # Human agents
 
 if config['human agents']['agents_with_random_attributes'] == 'True':
-    print("------------RANDOM agent attributes --------------- ")
+    #print("------------RANDOM agent attributes --------------- ")
     for i in range(0, int(config['human agents']['number'])):
         creation = Af.Create_agents(i)
         individual_agent = creation.Get_initial_agents()
@@ -99,8 +92,10 @@ if config['human agents']['agents_with_random_attributes'] == 'True':
     initial_agents = sum([ag for ag in initial_agents_prep], [])
 
 
+
 if config['human agents']['custom_agents'] == 'True':
-    print("------------CUSTOM agent attributes --------------- ")
+    #print("------------CUSTOM agent attributes --------------- ")
+
 
     number_of_sets = int(config['human agents']['number_of_custom_agent_sets'])
     last_id = 0
@@ -128,9 +123,8 @@ if config['human agents']['custom_agents'] == 'True':
 
             create_agents_with_attributes(last_id, set, cl_intent, cl_compliance, v_drive, cr_intent,
                                           cr_design)
-
             last_id += set
-
+           
 # PAT agents
 
 creation_frequency = int(config['PAT agents']['frequency_PAT_creation'])  # in time-steps
@@ -142,7 +136,7 @@ if config['PAT agents']['initial_PAT_agents'] == 'True':
 if config['PAT agents']['custom_bootstrapping'] == 'True':
 
     number_of_PAT_sets = int(config['PAT agents']['number_of_custom_PAT_sets'])
-    print("number_of_PAT_sets: ", number_of_PAT_sets)
+    #print("number_of_PAT_sets: ", number_of_PAT_sets)
 
     for p in range(1, number_of_PAT_sets + 1):
         # name of variables to be read frpm the init file:           extract this into a separate method
@@ -162,7 +156,6 @@ if config['PAT agents']['custom_bootstrapping'] == 'True':
         PATs = PAT_agents.Get_created_PAT_agents()
 
         initial_PAT_ag = initial_PAT_ag + PATs
-
 
 PATS = "pats"
 ADD_PATS = get_update_name(PATS)
@@ -186,117 +179,59 @@ simulation_parameters ={
 """### Policies"""
 
 def random_claim_of_tokens(params, step, sL, s):
-    agents = s['agents']
-    pats = s['PATs']
 
-    pats_careful_noble = []
-    pats_careful_opp = []
-    pats_careful_malicious = []
-    pats_careless_noble = []
-    pats_careless_opp = []
-    pats_careless_malicious = []
-
-    compliant_agents_claiming = []
-    opportunistic_agents_claiming = []
-    cheater_agents_claiming = []
-
+    pats_design = ("careful", "careless")
+    pats_purpose = ('noble','opportunistic','malicious')
+    agent_compliance = ('compliant', 'opportunistic', 'cheater')
+    to_update = []
+    
+    # pats_all [ design ] [ purpose ]
+    pats_all = dict([(y, dict([ (x,[]) for x in pats_purpose] )) for y in pats_design])
+    agents_all = dict([ (x,[]) for x in agent_compliance] )
+        
     #distinguish between careful and careless PATs
-    for pt in pats:
-        if pt['design'] == 'careful':
-            if pt['purpose'] == 'noble':
-                pats_careful_noble.append(pt['name'])
-
-            if pt['purpose'] == 'opportunistic':
-                pats_careful_opp.append(pt['name'])
-
-            if pt['purpose'] == 'malicious':
-                pats_careful_malicious.append(pt['name'])
-
-        else:
-            if pt['purpose'] == 'noble':
-                pats_careless_noble.append(pt['name'])
-
-            if pt['purpose'] == 'opportunistic':
-                pats_careless_opp.append(pt['name'])
-
-            if pt['purpose'] == 'malicious':
-                pats_careless_malicious.append(pt['name'])
-
+    for pt in s['PATs']:
+        pats_all[pt['design']][pt['purpose']].append(pt['name'])
 
     # distinguish between compliant, opportunists and cheaters
-    for agent in agents:
+    for agent in s['agents']:
         try:
-            if agent[0]['claimer'] == 'compliant':
-                compliant_agents_claiming.append(agent[0])
-            if agent[0]['claimer'] == 'opportunistic':
-                opportunistic_agents_claiming.append(agent[0])
-            if agent[0]['claimer'] == 'cheater':
-                cheater_agents_claiming.append(agent[0])
+            agents_all[agent[0]['claimer']].append(agent[0])
         except:
-            if agent['claimer'] == 'compliant':
-                compliant_agents_claiming.append(agent)
-            if agent['claimer'] == 'opportunistic':
-                opportunistic_agents_claiming.append(agent)
-            if agent['claimer'] == 'cheater':
-                cheater_agents_claiming.append(agent)
+            agents_all[agent['claimer']].append(agent)
+                        
+    for compliant in agents_all['compliant']:
+        pats = pats_all['careful'][compliant['claimer_PAT_intention']] + pats_all['careless'][compliant['claimer_PAT_intention']]
+        if pats :
+            to_update.append(compliant)
+            claim(compliant, pats, 'add_activity', s)
+        
+    for opp in agents_all["opportunistic"]:
+        opp_do = pats_all['careful'][opp['claimer_PAT_intention']]
+        opp_rand = pats_all['careless'][opp['claimer_PAT_intention']]                                    
+        claim(opp, opp_do, 'add_activity', s)
+        claim(opp, opp_rand, 'random_activity', s)
+        if opp_do + opp_rand : 
+            to_update.append(opp)
 
-    for compliant in compliant_agents_claiming:
-        total_pats = []
-        if compliant['claimer_PAT_intention'] == 'noble':
-            total_pats = pats_careful_noble + pats_careless_noble
-        if compliant['claimer_PAT_intention'] == 'opportunistic':
-            total_pats = pats_careful_opp + pats_careless_opp
-        if compliant['claimer_PAT_intention'] == 'malicious':
-            total_pats = pats_careful_malicious + pats_careless_malicious
+    for ch in agents_all["cheater"]:
+        pats = pats_all['careless'][ch['claimer_PAT_intention']]
+        if pats :
+            claim(ch, pats, 'no_activity', s)
+            to_update.append(ch)
 
-        claim(compliant, total_pats, 'add_activity', s)
-
-    for opp in opportunistic_agents_claiming:
-        if opp['claimer_PAT_intention'] == 'noble':
-            if len(pats_careful_noble) >= 1:
-                claim(opp, pats_careful_noble, 'add_activity', s)
-            if len(pats_careless_noble) >= 1:
-                claim(opp, pats_careless_noble, 'random_activity', s)
-        if opp['claimer_PAT_intention'] == 'opportunistic':
-            if len(pats_careful_opp) >= 1:
-                claim(opp, pats_careful_opp, 'add_activity', s)
-            if len(pats_careless_opp) >= 1:
-                claim(opp, pats_careless_opp, 'random_activity', s)
-        if opp['claimer_PAT_intention'] == 'malicious':
-            if len(pats_careful_malicious) >= 1:
-                claim(opp, pats_careful_malicious, 'add_activity', s)
-            if len(pats_careless_malicious) >= 1:
-                claim(opp, pats_careless_malicious, 'random_activity', s)
-
-    for ch in cheater_agents_claiming:
-        total_pats = []
-        if ch['claimer_PAT_intention'] == 'noble':
-            if len(pats_careless_noble) >= 1:
-                total_pats = pats_careless_noble
-        if ch['claimer_PAT_intention'] == 'opportunistic':
-            if len(pats_careless_opp) >= 1:
-                total_pats = pats_careless_opp
-        if ch['claimer_PAT_intention'] == 'malicious':
-            if len(pats_careless_opp) >= 1:
-                total_pats = pats_careless_malicious
-
-        claim(ch, total_pats, 'no_activity', s)
-
-    return {'update_agents': {'update': compliant_agents_claiming},
-            'update_agents': {'update': opportunistic_agents_claiming},
-            'update_agents': {'update': cheater_agents_claiming}}
-
+    return {'update_agents': {'update': to_update}}
 
 def create_pat(params, step, sL, s):
     agents = s['agents']
     initial_PAT_nr = len(s['PATs'])
-    print("timestep", s['timestep'])
+    print("PAT timestep", s['timestep'])
     #creation_frequency = config['PAT agents']['number_initial_pats'] #config['PAT agents']['frequency_PAT_creation']
-    print('creation frequency: ', creation_frequency)
+    #print('creation frequency: ', creation_frequency)
 
     if s['timestep'] > 0 and s['timestep'] % creation_frequency == 0:
         creator_name = random.randrange(len(agents))
-        print ("creator_name: ", creator_name)
+        #print ("creator_name: ", creator_name)
         for ag in agents:
             try:
                 if ag['name'] == creator_name:
@@ -305,17 +240,17 @@ def create_pat(params, step, sL, s):
                 if ag[0]['name'] == creator_name:
                     creator = ag[0]
 
-        print("creator: ", creator)
+        #print("creator: ", creator)
         intention = creator['creator_intention']
         creator_ID = creator['name']
         design = creator['creator_design']
         PAT_agents = Af.Create_custom_PAT_agents(initial_PAT_nr, 1, intention, design, creator_ID)
         initial_PAT_ag = PAT_agents.Get_created_PAT_agents()
-        print(initial_PAT_ag)
+        #print(initial_PAT_ag)
         return {'update_PATs': {'add': initial_PAT_ag}}
 
     else:
-        print("I am passing PAT creation")
+        #print("I am passing PAT creation")
         return {'update_PATs': {'add': None}}
 
 
@@ -335,14 +270,14 @@ def update_PATs(params, step, sL, s, _input):
 
     for PAT in x:
         try:
-            uuid = PAT["uuid"]
+            theuuid = PAT["uuid"]
         except:
-            uuid = PAT[0]["uuid"]
+            theuuid = PAT[0]["uuid"]
 
         if uuid in removed_uuids:
             x.remove(PAT)
-        if uuid in updated_uuids:
-            updated_PAT = [PAT for PAT in updated_PATs if PAT["uuid"] == uuid]
+        if theuuid in updated_uuids:
+            updated_PAT = [PAT for PAT in updated_PATs if PAT["uuid"] == theuuid]
             x.remove(PAT)
             x.append(updated_PAT)
 
@@ -354,7 +289,7 @@ def update_PATs(params, step, sL, s, _input):
 
 def update_agents(params, step, sL, s, _input):
     y = 'agents'
-    x = s['agents']
+    x = copy.copy(s['agents'])
 
     data = _input.get("update_agents", {})
     removed_agents = data.get("remove", [])
@@ -384,7 +319,6 @@ def update_agents(params, step, sL, s, _input):
 
 
 """### State update blocks"""
-
 if config['PAT agents']['custom_bootstrapping'] == 'True':
     partial_state_update_blocks = [
         {
@@ -408,6 +342,7 @@ else:
     ]
 
 """### Configuration and Execution"""
+
 
 config = Configuration(initial_state=initial_conditions, #dict containing variable names and initial values
                        partial_state_update_blocks=partial_state_update_blocks, #dict containing state update functions
