@@ -49,13 +49,20 @@ def create_agents_with_attributes(last_nr, set, claim_intent, claim_compliance, 
 
 def claim(agent, PAT_list, policy, s):
     gains = {}
+    rep = 0
     if len(PAT_list) >= 1:
         for pat in random.sample(PAT_list, random.randint(0, len(PAT_list))):
             already_existing_PATs = agent['token_wallet']
             if pat in already_existing_PATs:
+                print("pat to be updated: ", pat)
                 gains[pat] = already_existing_PATs[pat] + 1
             else:
                 gains[pat] = 1
+
+            try:
+                rep += rep_per_claim
+            except:
+                pass
 
             #add activity according to claimer choice
             if policy == 'add_activity':
@@ -71,7 +78,18 @@ def claim(agent, PAT_list, policy, s):
             if policy == 'no_activity':
                 pass
 
+    if rep_claimers:
+        print('Do I ever get here?')
+        gains['reputation'] = add_reputation_to_agent(agent, rep)
+        print(gains)
+
     agent['token_wallet'].update(gains)
+
+
+def add_reputation_to_agent(agent, rep):
+    print('am I here?')
+    return agent['token_wallet']['reputation'] + rep
+
 
 def add_activity_to_coresponding_PAT(pat_id, s):
     all_PATs = s['PATs']
@@ -87,6 +105,8 @@ initial_agents_prep = []
 initial_agents = []
 initial_PAT_ag = []
 
+rep_claimers = False
+rep_creators = False
 # Human agents
 
 if config['human agents']['agents_with_random_attributes'] == 'True':
@@ -163,6 +183,13 @@ if config['PAT agents']['custom_bootstrapping'] == 'True':
 
         initial_PAT_ag = initial_PAT_ag + PATs
 
+if config['reputation']['rep_for_token_claimers'] == 'True':
+    rep_claimers = True
+    rep_per_claim = int(config['reputation']['nr_reputation_tokens_per_claim'])
+
+elif config['reputation']['rep_for_PAT_creators'] == 'True':
+    rep_creators = True
+    rep_per_creation = int(config['reputation']['nr_reputation_tokens_per_PAT_creation'])
 
 PATS = "pats"
 ADD_PATS = get_update_name(PATS)
@@ -189,7 +216,7 @@ def random_claim_of_tokens(params, step, sL, s):
     agents = s['agents']
     pats = s['PATs']
 
-    pats_careful_noble = []
+    pats_careful_noble = []                      # TODO: dictionary of lists
     pats_careful_opp = []
     pats_careful_malicious = []
     pats_careless_noble = []
@@ -286,7 +313,6 @@ def random_claim_of_tokens(params, step, sL, s):
             'update_agents': {'update': opportunistic_agents_claiming},
             'update_agents': {'update': cheater_agents_claiming}}
 
-
 def create_pat(params, step, sL, s):
     agents = s['agents']
     initial_PAT_nr = len(s['PATs'])
@@ -311,13 +337,19 @@ def create_pat(params, step, sL, s):
         design = creator['creator_design']
         PAT_agents = Af.Create_custom_PAT_agents(initial_PAT_nr, 1, intention, design, creator_ID)
         initial_PAT_ag = PAT_agents.Get_created_PAT_agents()
+
+        if rep_creators:
+            gains = {}
+            gains["reputation"] = add_reputation_to_agent(agents[creator_name], rep_per_creation)
+            agents[creator_name]['token_wallet'].update(gains)
+
+
         print(initial_PAT_ag)
         return {'update_PATs': {'add': initial_PAT_ag}}
 
     else:
         print("I am passing PAT creation")
         return {'update_PATs': {'add': None}}
-
 
 """### State update functions (variables)"""
 
@@ -409,9 +441,9 @@ else:
 
 """### Configuration and Execution"""
 
-config = Configuration(initial_state=initial_conditions, #dict containing variable names and initial values
-                       partial_state_update_blocks=partial_state_update_blocks, #dict containing state update functions
-                       sim_config=simulation_parameters #dict containing simulation parameters
+config = Configuration(initial_state=initial_conditions,
+                       partial_state_update_blocks=partial_state_update_blocks,
+                       sim_config=simulation_parameters
                       )
 
 from cadCAD.engine import ExecutionMode, ExecutionContext, Executor
