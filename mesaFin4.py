@@ -1,21 +1,19 @@
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
-from mesaConfigCreateAgents import ConfigAgents
-import mesaHumanAgent
-
-
-def compute_gini(model):
-    agent_wealths = [agent.wealth for agent in model.schedule.agents]
-    x = sorted(agent_wealths)
-    N = model.num_agents
-    B = sum(xi * (N - i) for i, xi in enumerate(x)) / (N * sum(x))
-    return (1 + (1 / N) - 2 * B)
-
+import mesaConfigCreateAgents 
+from mesaPATAgent   import PATAgent
+from mesaHumanAgent import HumanAgent
+import mesaConfigCreateAgents
+import random
 
 class MesaFin4(Model):
     """A simple model of an economy of intentional agents and tokens.
     """
+    creation_frequency = 0
+
+    def update_creation_frequency(self, v):
+        MesaFin4.creation_frequency = v
 
     def __init__(self):
         #self.num_agents = N
@@ -24,25 +22,25 @@ class MesaFin4(Model):
         #     model_reporters={"Gini": compute_gini},
         #     agent_reporters={"Wealth": "wealth"}
         # )
-        # Create agents
-        for i in range(self.num_agents):
-            a = HumanAgent(self)
-            self.schedule.add(a)
-            # Add the agent to a random grid cell
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(a, (x, y))
-
-        self.running = True
-        self.datacollector.collect(self)
+        # Create agents(
+        mesaConfigCreateAgents.configAgents(self)
+        print(MesaFin4.creation_frequency)
+        #self.running = True
+        #self.datacollector.collect(self)
 
     def step(self):
         self.schedule.step()
         # collect data
-        self.datacollector.collect(self)
+        #self.datacollector.collect(self)
 
     def run_model(self, n):
+        print(MesaFin4.creation_frequency)
         for i in range(n):
+            print(i)
             self.step()
+            #if i % MesaFin4.creation_frequency == 0:
+            random.choice(self.schedule.agents).create_pat()
 
-
+if __name__ == "__main__":
+    m = MesaFin4()  
+    m.run_model(10)      

@@ -3,10 +3,11 @@ from mesa import Agent, Model
 import uuid
 import Personality_permutations as Pp
 from mesaPATAgent   import PATAgent
+import random
 
 class HumanAgent(Agent):
-    """ An agent with fixed initial wealth."""
     name = -1
+    compliance = ['compliant', 'opportunistic', 'cheater']
     
     def __init__(self, model):
         self.unique_id = uuid.uuid4()
@@ -23,10 +24,11 @@ class HumanAgent(Agent):
                                 'activity': 0,
                                 'own_PATs': 0}
         general_attributes_A.update(personality_mix)
-        self.attrib = general_attributes_A.update(personality_mix)
-        print("------------random agent---------------")
-        print(general_attributes_A)
-        print("---------------------------")
+        general_attributes_A.update(personality_mix)
+        self.attrib = general_attributes_A
+        # print("------------random agent---------------")
+        # print(general_attributes_A)
+        # print("---------------------------")
 
 
         
@@ -44,38 +46,42 @@ class HumanAgent(Agent):
                              'creator_design': creator_design}
 
         self.attrib = (lambda d: d.update(custom_persona) or d)(general_atr_A)
-        print("-----------custom agent----------------")
-        print(self.attrib)
-        print("---------------------------")
+        # print("-----------custom agent----------------")
+        # print(self.attrib)
+        # print("---------------------------")
 
-    def step(self):
-        self.move()
-        if self.wealth > 0:
-            self.give_money()
-            
-            
     def claim(self):
         # here I claim just one token. Should I instead claim as many as possible?
         pats = PATAgent.pats
-        agent_compliance = ('compliant', 'opportunistic', 'cheater')
         if self.attrib['compliance'] == 'compliant' :
             pat = random.choice(pats)
-            self.attrib['activity'] = self.attrib['activity'] + 1
-            pat.attrib['activity'] =  pat.attrib['activity'] + 1
-        else if self.attrib['compliance'] == 'opportunistic' :
+            act = True
+        elif self.attrib['compliance'] == 'opportunistic' :
             pat = random.choice(pats)
             if pat.attrib['design'] == 'careful' :
                 act = True
             else :
-                act = random.Boolean
-            if act :
-                self.attrib['activity'] = self.attrib['activity'] + 1
-                pat.attrib['activity'] =  pat.attrib['activity'] + 1
-        else if self.attrib['compliance'] == 'cheater' :
+                act = random.choice([True, False])
+        elif self.attrib['compliance'] == 'cheater' :
             pat = random.choice(filter(lambda x: x.attrib['design'] == 'careless', pats) )
-            pass
+            act = False
+        if act :
+            self.attrib['activity'] = self.attrib['activity'] + 1
+            pat.attrib['activity'] =  pat.attrib['activity'] + 1
         self.attrib['token_wallet'] = self.attrib.get('token_wallet', 0) + 1
-            
+        
+    def create_pat(self):
+        #if s['timestep'] > 0 and s['timestep'] % creation_frequency == 0:
+        #creator_name = random.randrange(len(agents))
+        #print ("creator_name: ", creator_name)
+        p = PATAgent()
+        p.custom_init(self.attrib['creator_intention'], 
+                      self.attrib['creator_design'], 
+                      self.attrib['name'])
+        
+        def step(self):
+            self.claim()
+
         
 if __name__ == "__main__":
     m = Model()        

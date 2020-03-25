@@ -2,6 +2,8 @@ from mesa import Model
 import configparser
 from mesaHumanAgent import HumanAgent
 from mesaPATAgent   import PATAgent
+import mesaFin4
+
 
 
 def configAgents(m: Model) :
@@ -44,17 +46,12 @@ def configAgents(m: Model) :
                                   cr_design)
                     m.schedule.add(a) 
                 last_id += set
-                
-                
+                   
 # now create PAT agents
-# to go into model
-#creation_frequency = int(config['PAT agents']['frequency_PAT_creation'])  # in time-steps
-
     if config['PAT agents']['initial_PAT_agents'] == 'True':
         for i in range(int(config['PAT agents']['number_initial_pats'])):
-            p = PATAgent(m)
+            p = PATAgent()
             p.random_init()
-            m.schedule.add(p)              
             
     if config['PAT agents']['custom_bootstrapping'] == 'True':
         number_of_PAT_sets = int(config['PAT agents']['number_of_custom_PAT_sets'])
@@ -72,9 +69,10 @@ def configAgents(m: Model) :
             tk_design = config['PAT agents'][token_design]
             cr_id = int(config['PAT agents'][creator_id])
             for i in range(nr_PATs):
-                p = PATAgent(m)
+                p = PATAgent()
                 p.custom_init(tk_purpose, tk_design, cr_id)
-                m.schedule.add(a) 
+                
+        m.update_creation_frequency(int(config['PAT agents']['frequency_PAT_creation']) ) # in time-steps
 
 if __name__ == "__main__":
     from mesa.time import RandomActivation
