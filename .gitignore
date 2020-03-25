@@ -1,5 +1,6 @@
 .idea/
 *.png
+output.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -105,3 +106,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# dask
+dask-worker-space/
+
