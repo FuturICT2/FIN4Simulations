@@ -1,5 +1,11 @@
 import unittest
 import Fin4_ABM as model
+import configparser
+
+"""### Read config file"""
+
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 class MyTestCase(unittest.TestCase):
 
@@ -24,11 +30,11 @@ class MyTestCase(unittest.TestCase):
     def test_number_of_agents_created(self):
         print("Running test: number of agents created")
         rec_data = self.reconstruct_agent_database(model.raw_result[-1]['agents'])
-        self.assertEqual(len(rec_data), model.n_A)
+        self.assertEqual(len(rec_data), int(config['human agents']['number']))
 
     def test_PAT_creator_creation(self):
         print("Running test: PAT creator - creation")
-        initial_PAT_number = model.n_initial_pat
+        initial_PAT_number = int(config['PAT agents']['number_initial_pats'])
         nr_new_PATs = len(model.raw_result[-1]["PATs"]) - initial_PAT_number
         print("nr new PATs", nr_new_PATs)
         for i in range(0, nr_new_PATs):
