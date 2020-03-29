@@ -129,7 +129,7 @@ if config['human agents']['custom_agents'] == 'True':
 
 creation_frequency = int(config['PAT agents']['frequency_PAT_creation'])  # in time-steps
 
-if config['PAT agents']['initial_PAT_agents'] == 'True':
+if config['PAT agents']['human_agent_PAT_creation'] == 'True':
     PAT_agents = Af.Initial_PAT_agents(int(config['PAT agents']['number_initial_pats']))
     initial_PAT_ag = PAT_agents.Get_initial_PAT_agents()
 
