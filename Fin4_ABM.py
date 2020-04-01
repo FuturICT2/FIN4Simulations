@@ -39,7 +39,6 @@ def create_agents_with_attributes(last_nr, set, claim_intent, claim_compliance, 
         creation = Af.Create_custom_agents(i, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design)
         individual_agent = creation.getCustomAgent()
         initial_agents.append(individual_agent)
-    return initial_agents
 
 def claim(agent, PAT_list, policy, s):
     gains = {}
@@ -81,25 +80,20 @@ initial_agents = []
 initial_PAT_ag = []
 
 # Human agents
-
+last_id = 0
 if config['human agents']['agents_with_random_attributes'] == 'True':
     #print("------------RANDOM agent attributes --------------- ")
     for i in range(0, int(config['human agents']['number'])):
-        creation = Af.Create_agents(i)
-        individual_agent = creation.Get_initial_agents()
-        initial_agents_prep.append(individual_agent)
-
-    initial_agents = sum([ag for ag in initial_agents_prep], [])
-
+        creation = Af.Create_random_agent(i)
+        individual_agent = creation.get_random_agent()
+        initial_agents.append(individual_agent)
+    last_id = i + 1
 
 
 if config['human agents']['custom_agents'] == 'True':
     #print("------------CUSTOM agent attributes --------------- ")
 
-
     number_of_sets = int(config['human agents']['number_of_custom_agent_sets'])
-    last_id = 0
-
     for s in range(1, number_of_sets + 1):
 
             #name of variables to be read frpm the init file:           extract this into a separate method
@@ -162,7 +156,6 @@ ADD_PATS = get_update_name(PATS)
 
 
 """### Initial conditions and parameters"""
-
 initial_conditions = {
     'agents': initial_agents,
     'PATs': initial_PAT_ag,
@@ -220,7 +213,7 @@ def random_claim_of_tokens(params, step, sL, s):
             claim(ch, pats, 'no_activity', s)
             to_update.append(ch)
 
-    return {'update_agents': {'update': to_update}}
+    return {'updated_agents': {'update': to_update}}
 
 def create_pat(params, step, sL, s):
     agents = s['agents']
@@ -231,16 +224,7 @@ def create_pat(params, step, sL, s):
 
     if s['timestep'] > 0 and s['timestep'] % creation_frequency == 0:
         creator_name = random.randrange(len(agents))
-        #print ("creator_name: ", creator_name)
-        for ag in agents:
-            try:
-                if ag['name'] == creator_name:
-                    creator = ag
-            except:
-                if ag[0]['name'] == creator_name:
-                    creator = ag[0]
-
-        #print("creator: ", creator)
+        creator = next(ag for ag in agents if ag['name'] == creator_name)
         intention = creator['creator_intention']
         creator_ID = creator['name']
         design = creator['creator_design']
@@ -290,31 +274,14 @@ def update_PATs(params, step, sL, s, _input):
 def update_agents(params, step, sL, s, _input):
     y = 'agents'
     x = copy.copy(s['agents'])
-
-    data = _input.get("update_agents", {})
-    removed_agents = data.get("remove", [])
-    removed_uuids = [agent['uuid'] for agent in removed_agents]
+    data = _input.get("updated_agents", {})
     updated_agents = data.get("update", [])
-
-    updated_uuids = [agent["uuid"] for agent in updated_agents]
-    added_agents = data.get("add", [])
-
-    for agent in x:
-        try:
-            uuid = agent["uuid"]
-        except:
-            uuid = agent[0]["uuid"]
-
-        if uuid in removed_uuids:
-            x.remove(agent)
-        if uuid in updated_uuids:
-            updated_agent = [agent for agent in updated_agents if agent["uuid"] == uuid]
-            x.remove(agent)
-            x.append(updated_agent)
-
-    for agent in added_agents:
-        x.append(agent)
-
+    for newag in updated_agents:
+         x.remove(
+             next((ag for ag in x if newag["uuid"]==ag["uuid"]),
+                  None))
+         x.append(newag)
+    #print([type(l) for l in x])
     return (y, x)
 
 

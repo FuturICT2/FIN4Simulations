@@ -11,15 +11,6 @@ class MyTestCase(unittest.TestCase):
 
 #---------------------- Helper functions---------------------------
 
-    def reconstruct_agent_database(self, data):
-        reconstruction = []
-        for i in range(0, len(data)):
-            if isinstance(data[i], dict):
-                reconstruction.append(data[i])
-            if isinstance(data[i], list):
-                reconstruction.append(data[i][0])
-        return reconstruction
-
     def number_of_tokens_per_person(self, agent):
         distribution = 0
         for pat, number_of_tokens in agent['token_wallet'].items():
@@ -32,9 +23,12 @@ class MyTestCase(unittest.TestCase):
     def calculate_total_agents_from_config_file(self):
         nr_agen_sets = int(config['human agents']['number_of_custom_agent_sets'])
         total_agents = 0
-        for set in range(1, nr_agen_sets + 1):
-            set_name = "set" + str(set) +"_number_of_agents"
-            total_agents += int(config['human agents'][set_name])
+        if config['human agents']['custom_agents'] == "True":
+            for set in range(1, nr_agen_sets + 1):
+                set_name = "set" + str(set) +"_number_of_agents"
+                total_agents += int(config['human agents'][set_name])
+        if config['human agents']['agents_with_random_attributes'] == "True":
+            total_agents += int(config['human agents']['number'])
         return total_agents
 
     def info_PATs_from_config_file(self):
@@ -57,11 +51,10 @@ class MyTestCase(unittest.TestCase):
 
     def test_number_of_agents_created(self):
         print("Running test: number of agents created")
-        rec_data = self.reconstruct_agent_database(model.raw_result[-1]['agents'])
-        if config['human agents']['agents_with_random_attributes'] == "True":
-            self.assertEqual(len(rec_data), int(config['human agents']['number']))
-        if config['human agents']['custom_agents'] == "True":
-            self.assertEqual(len(rec_data), self.calculate_total_agents_from_config_file())
+        self.assertEqual(
+            len(model.raw_result[-1]['agents']),
+            self.calculate_total_agents_from_config_file()
+        )
 
     def test_PAT_creator_creation(self):
         print("Running test: PAT creator - creation")
@@ -92,8 +85,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_AT_ratio(self):
         print ("Running test: AT ratio")
-        rec_data = self.reconstruct_agent_database(model.raw_result[-1]['agents'])
-        for agent in rec_data:
+        for agent in model.raw_result[-1]['agents']:
             nr_tokens = self.number_of_tokens_per_person(agent)
             activity = agent['activity']
             if nr_tokens:
