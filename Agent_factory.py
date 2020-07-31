@@ -1,15 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import pandas as pd
-import random
 import uuid
-import matplotlib.pyplot as plt
-import numpy as np
-from cadCAD.configuration import Configuration
-from cadCAD.engine import ExecutionMode, ExecutionContext, Executor
-from cadCAD.configuration.utils import config_sim
-from cadCAD.configuration import append_configs
-from dask.distributed import Client
 import Personality_permutations as Pp
 
 class Create_agents():
@@ -26,7 +17,11 @@ class Create_agents():
                                 'name': number,
                                 'token_wallet': {"reputation": 0},
                                 'activity': 0,
-                                'own_PATs': 0}
+                                'own_PATs': 0,
+                                'given_rep_to': {},
+                                'received_rep_from': {}}
+
+        #'verifier': 0
 
         general_atributes_A.update(personality_mix)
 
@@ -51,7 +46,7 @@ class Create_agents():
 
 class Create_custom_agents():
 
-    def __init__(self, nr, claimer_intention, compliance, voter, creator_intention, creator_design):
+    def __init__(self, nr, claimer_intention, compliance, voter, verifier, creator_intention, creator_design):
         self.agents = []
 
         #print("I am here")
@@ -60,9 +55,12 @@ class Create_custom_agents():
                                 'name':  nr,
                                 'token_wallet': {"reputation": 0},
                                 'activity': 0,
-                                'own_PATs': 0}
+                                'own_PATs': 0,
+                                'given_rep_to': {},
+                                'received_rep_from': {}
+                         }
 
-        self.create_custom_personality_mix(claimer_intention, compliance, voter, creator_intention, creator_design)
+        self.create_custom_personality_mix(claimer_intention, compliance, voter, verifier, creator_intention, creator_design)
         pers_mix = self.getCustomPersona()
         print(general_atr_A)
         print("---------------------------")
@@ -77,12 +75,13 @@ class Create_custom_agents():
         return self.custom_agent
         
 
-    def create_custom_personality_mix(self, claimer_intention, compliance, voter, creator_intention, creator_design):
+    def create_custom_personality_mix(self, claimer_intention, compliance, voter, verifier, creator_intention, creator_design):
         #print("I am here")
         self.custom_persona = {}
         self.custom_persona.update({'claimer': compliance,
                              'claimer_PAT_intention': claimer_intention,
                              'voter': voter,
+                             'verifier': verifier,
                              'creator_intention': creator_intention,
                              'creator_design': creator_design})
         #print(self.custom_persona)

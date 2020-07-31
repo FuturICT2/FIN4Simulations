@@ -40,9 +40,9 @@ config.read('config.ini')
 def get_update_name(variable_name):
     return "add_" + variable_name
 
-def create_agents_with_attributes(last_nr, set, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design):
+def create_agents_with_attributes(last_nr, set, claim_intent, claim_compliance, voter_drive, verifier, creator_intent, creator_design):
     for i in range(last_nr, last_nr + set):
-        creation = Af.Create_custom_agents(i, claim_intent, claim_compliance, voter_drive, creator_intent, creator_design)
+        creation = Af.Create_custom_agents(i, claim_intent, claim_compliance, voter_drive, verifier, creator_intent, creator_design)
         individual_agent = creation.getCustomAgent()
         initial_agents.append(individual_agent)
     return initial_agents
@@ -132,6 +132,7 @@ if config['human agents']['custom_agents'] == 'True':
             claim_intent = "set" + str(s) + "_claim_intent"
             claim_compliance = "set" + str(s) + "_claim_compliance"
             voter_drive = "set" + str(s) + "_voter_drive"
+            verifier = "set" + str(s) + "_verifier"
             creator_intent = "set" + str(s) + "_creator_intent"
             creator_design = "set" + str(s) + "_creator_design"
 
@@ -140,13 +141,14 @@ if config['human agents']['custom_agents'] == 'True':
             cl_intent = config['human agents'][claim_intent]
             cl_compliance = config['human agents'][claim_compliance]
             v_drive = config['human agents'][voter_drive]
+            ver = config['human agents'][verifier]
             cr_intent = config['human agents'][creator_intent]
             cr_design = config['human agents'][creator_design]
 
             #except UndefinedCustomAgents:
             #    print("Undefined attributes for custom human agents!")
 
-            create_agents_with_attributes(last_id, set, cl_intent, cl_compliance, v_drive, cr_intent,
+            create_agents_with_attributes(last_id, set, cl_intent, cl_compliance, v_drive, ver, cr_intent,
                                           cr_design)
 
             last_id += set
