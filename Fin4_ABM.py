@@ -85,11 +85,8 @@ def claim(agent, PAT_list, policy, s):
 
     agent['token_wallet'].update(gains)
 
-
 def add_reputation_to_agent(agent, rep):
-    print('am I here?')
     return agent['token_wallet']['reputation'] + rep
-
 
 def add_activity_to_coresponding_PAT(pat_id, s):
     all_PATs = s['PATs']
@@ -202,6 +199,7 @@ ADD_PATS = get_update_name(PATS)
 initial_conditions = {
     'agents': initial_agents,
     'PATs': initial_PAT_ag,
+    'Rep': 0,
     'initial nr. of PATs': int(config['PAT agents']['number_initial_pats']),
     'list_of_OPATs': []
 }
@@ -319,7 +317,6 @@ def create_pat(params, step, sL, s):
     agents = s['agents']
     initial_PAT_nr = len(s['PATs'])
     print("timestep", s['timestep'])
-    #creation_frequency = config['PAT agents']['number_initial_pats'] #config['PAT agents']['frequency_PAT_creation']
     print('creation frequency: ', creation_frequency)
 
     if s['timestep'] > 0 and s['timestep'] % creation_frequency == 0:
@@ -345,13 +342,51 @@ def create_pat(params, step, sL, s):
             gains["reputation"] = add_reputation_to_agent(agents[creator_name], rep_per_creation)
             agents[creator_name]['token_wallet'].update(gains)
 
-
-        print(initial_PAT_ag)
         return {'update_PATs': {'add': initial_PAT_ag}}
 
     else:
-        print("I am passing PAT creation")
         return {'update_PATs': {'add': None}}
+
+def distribute_reputation(params, step, sL, s):
+    agents = s['agents']
+    PATs = s['PATs']
+    agent_id_receiver = 2
+    number_of_rep = 1
+    rep_dist_freq = 2
+    print("*********** I am in distribute reputation")
+
+    if s['timestep'] > 0 and s['timestep'] % rep_dist_freq == 0:
+        # TODO look for who has rep. to distribute
+        # distinguish between PAT creator - verifier and peer-peer
+
+        # PAT creator - verifier
+        # TODO find the PAT creators
+        PAT_creators = []
+        # TODO check if they already have friends - see if they are available or search in their friends
+        # TODO if it is their first time, check their tokens, and look for token friends who are also verifiers (two agents who both have a minimum of 3 tokens from their max PAT)
+        # TODO if it is their first time and they don't have yet token friends, pick randomly from the verifier pool
+        # TODO don't forget to deduct the hollow reputation after transfering it
+        for pat in PATs:
+            if pat['creator_ID'] != None:
+                PAT_creators.append(pat['creator_ID'])
+
+        for creator in PAT_creators:
+            for ag in agents:
+                if ag["name"] == creator and ag['token_wallet']['reputation'] > 0:
+                    print('***** Found source of hollow rep', ag["name"])
+                    if len(ag['given_rep_to']) == 0:
+                        print("First time giving hollow")
+                        
+                    else:
+                        print("Has already given hollow before, has friends")
+
+
+        return {'update_rep': {'add': agent_id_receiver}}
+
+    else:
+        print("I am passing rep distribution")
+        return {'update_rep': {'add': None}}
+
 
 """### State update functions (variables)"""
 
@@ -416,6 +451,35 @@ def update_agents(params, step, sL, s, _input):
 
     return (y, x)
 
+def update_rep(params, step, sL, s, _input):
+    y = 'agents'
+    x = s['agents']
+
+    data = _input.get("update_agents", {})
+    removed_agents = data.get("remove", [])
+    removed_uuids = [agent['uuid'] for agent in removed_agents]
+    updated_agents = data.get("update", [])
+
+    updated_uuids = [agent["uuid"] for agent in updated_agents]
+    added_agents = data.get("add", [])
+
+    for agent in x:
+        try:
+            uuid = agent["uuid"]
+        except:
+            uuid = agent[0]["uuid"]
+
+        if uuid in removed_uuids:
+            x.remove(agent)
+        if uuid in updated_uuids:
+            updated_agent = [agent for agent in updated_agents if agent["uuid"] == uuid]
+            x.remove(agent)
+            x.append(updated_agent)
+
+    for agent in added_agents:
+        x.append(agent)
+
+    return (y, x)
 
 """### State update blocks"""
 
@@ -437,6 +501,11 @@ else:
         {
         'policies': {'create_pat': create_pat},
         'variables': {'PATs': update_PATs}
+
+        },
+        {
+        'policies': {'distribute_reputation': distribute_reputation},
+        'variables': {'Rep': update_rep}
 
         }
     ]

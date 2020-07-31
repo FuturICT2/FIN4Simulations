@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import pandas as pd
+
 import random
-import uuid
-import matplotlib.pyplot as plt
-import numpy as np
-from cadCAD.configuration import Configuration
-from cadCAD.engine import ExecutionMode, ExecutionContext, Executor
-from cadCAD.configuration.utils import config_sim
-from cadCAD.configuration import append_configs
-from dask.distributed import Client
 
 class Create_personas():
 
