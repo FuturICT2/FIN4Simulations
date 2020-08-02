@@ -25,8 +25,8 @@ class UndefinedCustomAgents(Error):
    pass
 
 
-if __name__ == '__main__':
-    client = Client()
+#if __name__ == '__main__':
+#    client = Client()
 
 
 """### Read config file"""
