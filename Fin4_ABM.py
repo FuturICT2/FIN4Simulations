@@ -95,6 +95,16 @@ def add_activity_to_coresponding_PAT(pat_id, s):
         if PAT['name'] == pat_id:
             PAT['activity'] = PAT['activity'] + 1
 
+def pick_verifier_from_verifier_pool(agents, name):
+    verifier_ID_pool = []
+
+    for ag in agents:
+        # pick from the pool but not yourself
+        if ag['verifier'] == "True" and ag["name"] != name:
+            verifier_ID_pool.append(ag['name'])
+    print("------- verifier_ID_pool: ", verifier_ID_pool)
+
+    return random.choice(verifier_ID_pool)
 
 """## Definitions"""
 
@@ -348,6 +358,8 @@ def create_pat(params, step, sL, s):
         return {'update_PATs': {'add': None}}
 
 def distribute_reputation(params, step, sL, s):
+    # distribute every time step and pick randomly from the list of people who can distribute
+    # according to the occasion, the "friend" who will get the hollow will also be selected
     agents = s['agents']
     PATs = s['PATs']
     agent_id_receiver = 2
@@ -355,37 +367,51 @@ def distribute_reputation(params, step, sL, s):
     rep_dist_freq = 2
     print("*********** I am in distribute reputation")
 
-    if s['timestep'] > 0 and s['timestep'] % rep_dist_freq == 0:
-        # TODO look for who has rep. to distribute
-        # distinguish between PAT creator - verifier and peer-peer
+    # TODO look for who has rep. to distribute
+    # distinguish between PAT creator - verifier and peer-peer
 
-        # PAT creator - verifier
-        # TODO find the PAT creators
-        PAT_creators = []
-        # TODO check if they already have friends - see if they are available or search in their friends
-        # TODO if it is their first time, check their tokens, and look for token friends who are also verifiers (two agents who both have a minimum of 3 tokens from their max PAT)
-        # TODO if it is their first time and they don't have yet token friends, pick randomly from the verifier pool
-        # TODO don't forget to deduct the hollow reputation after transfering it
-        for pat in PATs:
-            if pat['creator_ID'] != None:
-                PAT_creators.append(pat['creator_ID'])
+    # PAT creator - verifier
+    # TODO find the PAT creators
+    PAT_creators = []
+    # TODO check if they already have friends - see if they are available or search in their friends
+    # TODO if it is their first time, check their tokens, and look for token friends who are also verifiers (two agents who both have a minimum of 3 tokens from their max PAT)
+    # TODO if it is their first time and they don't have yet token friends, pick randomly from the verifier pool
+    # TODO don't forget to deduct the hollow reputation after transfering it
+    friend = None
+    for pat in PATs:
+        if pat['creator_ID'] != None:
+            PAT_creators.append(pat['creator_ID'])
 
-        for creator in PAT_creators:
-            for ag in agents:
-                if ag["name"] == creator and ag['token_wallet']['reputation'] > 0:
-                    print('***** Found source of hollow rep', ag["name"])
-                    if len(ag['given_rep_to']) == 0:
-                        print("First time giving hollow")
+    candidates_to_give_hollow = []
+    for creator in PAT_creators:
+        for ag in agents:
+            if ag["name"] == creator and ag['token_wallet']['reputation'] > 0:
+                candidates_to_give_hollow.append(creator)
+
+    print("***candidates_to_give_hollow: ", candidates_to_give_hollow)
+    if len(candidates_to_give_hollow)> 0:
+        give_hollow = random.choice(candidates_to_give_hollow)
+
+        print("***give_hollow: ", give_hollow)
+        for ag in agents:
+            if ag["name"] == give_hollow:
+                #if len(ag['given_rep_to']) == 0:
+                    # pick randomly from the the verifier pool
+                friend = pick_verifier_from_verifier_pool(agents, ag["name"])
                         
-                    else:
-                        print("Has already given hollow before, has friends")
+                #else:
+                #    print("Has already given hollow before, has friends")
+                    # pick from previous friends (the verifier flag can be switched off)
+                    # pick_verifier_from_friends(ag[])
+                #    friend = random.choice(ag['given_rep_to'])
 
-
-        return {'update_rep': {'add': agent_id_receiver}}
+        agent_id_receiver = friend
+        print("***found_friend: ", agent_id_receiver)
+        return {'update_rep': {'give_to': agent_id_receiver, 'take_from': give_hollow}}
 
     else:
-        print("I am passing rep distribution")
-        return {'update_rep': {'add': None}}
+        print("***I am passing rep distribution")
+        return {'update_rep': {'give_to': None, 'take_from': None}}
 
 
 """### State update functions (variables)"""
@@ -455,29 +481,25 @@ def update_rep(params, step, sL, s, _input):
     y = 'agents'
     x = s['agents']
 
-    data = _input.get("update_agents", {})
-    removed_agents = data.get("remove", [])
-    removed_uuids = [agent['uuid'] for agent in removed_agents]
-    updated_agents = data.get("update", [])
-
-    updated_uuids = [agent["uuid"] for agent in updated_agents]
-    added_agents = data.get("add", [])
+    data = _input.get("update_rep", {})
+    give_hollow_to = data.get("give_to")
+    take_hollow_from = data.get("take_from")
 
     for agent in x:
         try:
-            uuid = agent["uuid"]
+            ID = agent["name"]
         except:
-            uuid = agent[0]["uuid"]
+            ID = agent[0]["name"]
 
-        if uuid in removed_uuids:
-            x.remove(agent)
-        if uuid in updated_uuids:
-            updated_agent = [agent for agent in updated_agents if agent["uuid"] == uuid]
-            x.remove(agent)
-            x.append(updated_agent)
-
-    for agent in added_agents:
-        x.append(agent)
+        if ID == give_hollow_to:
+            agent["received_rep_from"][take_hollow_from] = agent["received_rep_from"].get(take_hollow_from, 0) + 1
+            #update = {take_hollow_from: 1}
+            #agent["received_rep_from"].update(update)
+        if ID == take_hollow_from:
+            agent["given_rep_to"][give_hollow_to] = agent["given_rep_to"].get(give_hollow_to, 0) + 1
+            agent["token_wallet"]['reputation'] -= 1
+            #update = {give_hollow_to: 1}
+            #agent["given_rep_to"].update(update)
 
     return (y, x)
 

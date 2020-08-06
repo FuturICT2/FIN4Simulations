@@ -31,6 +31,17 @@ def to_percent(y, position):
     else:
         return s + '%'
 
+def construct_network_information(state):
+    nodes = len(state['agents'])
+    print("@@@@ nodes: ", nodes)
+    edge_list = []
+    for ag in state['agents']:
+        if len(ag['given_rep_to']) > 0:
+            for key, value in ag['given_rep_to'].items():
+                for i in range(0, value):
+                    edge_list.append(ag['name'])
+                    edge_list.append(key)
+    return nodes, edge_list
 
 #------------------- tokens/PAT -----------------------------
 def calculate_total_tokens_per_pat(state):
@@ -160,6 +171,15 @@ def calculate_population_claim_style(state):
 
     return style_array
 
+#-----------------reconstruct network with R script-------------------
+
+if 1:
+    with open("network.txt", 'a') as network:
+        nr_nodes, edge_list = construct_network_information(setup.raw_result[-1])
+        network.write('\n' + str(nr_nodes) + '\n')
+        for e in edge_list:
+            network.write(str(e) + " ")
+    network.close()
 
 #------------------population distribution --------------------------
 if 1:
